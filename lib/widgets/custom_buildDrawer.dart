@@ -1,7 +1,5 @@
 import 'package:Tirthankar/core/const.dart';
 import 'package:Tirthankar/widgets/common_methods.dart';
-import 'package:Tirthankar/widgets/custom_button_widget.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 import 'package:Tirthankar/core/keys.dart';
@@ -9,7 +7,7 @@ import 'package:Tirthankar/core/language.dart';
 import 'package:Tirthankar/widgets/custom_drawer_tile.dart';
 
 class CustomeBuildDrawer extends StatelessWidget {
-  final String module;
+  final String? module;
   final languageSelector selectlang = new languageSelector();
   final common_methods commonmethod = new common_methods();
   CustomeBuildDrawer({
@@ -51,30 +49,37 @@ class CustomeBuildDrawer extends StatelessWidget {
                   Padding(
                     padding: const EdgeInsets.all(8.0),
                     child: Text(
-                      selectlang.getAlbum("Tirthankar", lang_selection),
+                      selectlang.getAlbum("Tirthankar", lang_selection!),
                       style: TextStyle(fontSize: 20, color: AppColors.white),
                     ),
                   ),
                 ],
               ),
             )),
-        CustomeDrwareTile(impagepath: "assets/diya.png", module: "Aarti"),
-        CustomeDrwareTile(impagepath: "assets/bhakt.png", module: "Bhaktambar"),
-        CustomeDrwareTile(impagepath: "assets/story.png", module: "Kids"),
-        CustomeDrwareTile(impagepath: "assets/bhajan.png", module: "Bhajan"),
-        CustomeDrwareTile(impagepath: "assets/namokar.png", module: "Namokar"),
+        CustomeDrwareTile(impagepath: "assets/diya.png", module: "AARTI"),
+        // CustomeDrwareTile(impagepath: "assets/bhakt.png", module: "Bhaktambar"),
+        CustomeDrwareTile(impagepath: "assets/story.png", module: "KIDS"),
+        CustomeDrwareTile(impagepath: "assets/bhajan.png", module: "BHAJAN"),
         CustomeDrwareTile(
-            impagepath: "assets/vidyasagar.png", module: "Pravchan"),
-        CustomeDrwareTile(impagepath: "assets/chalisa.png", module: "Chalisa"),
+            impagepath: "assets/vidyasagar.png", module: "PRAVCHAN"),
+        CustomeDrwareTile(impagepath: "assets/ebook.png", module: "JAIN BOOKS"),
         CustomeDrwareTile(
-            impagepath: "assets/jinvani.png", module: "Jinvani Channel"),
+            impagepath: "assets/jainrasoi.png", module: "JAIN RASOI"),
+        CustomeDrwareTile(impagepath: "assets/chalisa.png", module: "CHALISA"),
+        CustomeDrwareTile(impagepath: "assets/namokar.png", module: "FAVORITE"),
+        CustomeDrwareTile(impagepath: "assets/pooja.png", module: "JAIN POOJA"),
         CustomeDrwareTile(
-            impagepath: "assets/jainrasoi.png", module: "Jain Rasoi"),
+            impagepath: "assets/jinvani.png", module: "JINVANI TV"),
         CustomeDrwareTile(
-            impagepath: "assets/aryanandi.png", module: "Calendar"),
+            impagepath: "assets/calendar/aug_row_4_col_1.png",
+            module: "CALENDAR"),
+
         CustomeDrwareTile(
-            impagepath: "assets/favorite.png", module: "Favorite"),
-        CustomeDrwareTile(impagepath: "assets/settings.png", module: "Setting"),
+            impagepath: "assets/locations.png", module: "JAIN GROUPS"),
+        CustomeDrwareTile(
+            impagepath: "assets/temple.png", module: "JAIN TIRTH"),
+
+        CustomeDrwareTile(impagepath: "assets/settings.png", module: "SETTING"),
 
         // ListTile(leading: "assets/diya.png", title: "Aarti"],
         // ["assets/bhakt.png", "Bhaktambar"],

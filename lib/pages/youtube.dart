@@ -1,13 +1,14 @@
 import 'package:Tirthankar/pages/videoplayer.dart';
+import 'package:Tirthankar/widgets/custom_buildDrawer.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+// import 'package:gradient_app_bar/gradient_app_bar.dart';
 // import 'package:flutter_youtube/flutter_youtube.dart';
 import 'package:marquee_widget/marquee_widget.dart';
 import 'package:Tirthankar/core/const.dart';
 import 'package:Tirthankar/core/keys.dart';
 import 'package:Tirthankar/models/listdata.dart';
 import 'package:Tirthankar/pages/home.dart';
-import 'package:Tirthankar/pages/muni.dart';
 // import 'package:Tirthankar/pages/videoplay.txt';
 import 'package:Tirthankar/pages/youtubeapi.dart';
 import 'package:Tirthankar/widgets/common_methods.dart';
@@ -19,8 +20,8 @@ import 'package:youtube_player_iframe/youtube_player_iframe.dart';
 // void main() => runApp(new YoutubePlay());
 
 class YoutubePlay extends StatefulWidget {
-  String appname;
-  String search;
+  String? appname;
+  String? search;
   // // int playingId;
   // // List<MusicData> list;
   // // ListPage({this.appname,this.playingId,this.list});
@@ -28,31 +29,31 @@ class YoutubePlay extends StatefulWidget {
   // YoutubePlay({this.appname, this.data});
   YoutubePlay({this.appname, this.search});
   @override
-  _YoutubePlayState createState() => new _YoutubePlayState(appname, search);
+  _YoutubePlayState createState() => new _YoutubePlayState(appname!, search!);
 }
 
 class _YoutubePlayState extends State<YoutubePlay> {
-  static String key = YOUTUBE_KEY; // ** ENTER YOUTUBE API KEY HERE **
-  String appname;
-  String search;
-  String songid;
-  String query;
-  int videolist = 0;
-  bool _isLoading = false;
-  ScrollController _controller;
+  static String? key = YOUTUBE_KEY; // ** ENTER YOUTUBE API KEY HERE **
+  String? appname;
+  String? search;
+  String? songid;
+  String? query;
+  int? videolist = 0;
+  bool? _isLoading = false;
+  ScrollController? _controller;
   _YoutubePlayState(this.appname, this.search);
   YoutubeAPIA ytApi = new YoutubeAPIA(key);
   List<YT_API> ytResult = [];
   final languageSelector selectlang = new languageSelector();
   final common_methods commonmethod = new common_methods();
-  YoutubePlayerController _controllers;
+  YoutubePlayerController? _controllers;
 
   callAPI() async {
     print('UI callled');
     query = search;
     // ytResult = await ytApi.search(query);
     if (internet != false) {
-      ytResult = await ytApi.searchVideo(query);
+      ytResult = (await ytApi.searchVideo(query!))!;
     }
 
     setState(() {
@@ -70,14 +71,20 @@ class _YoutubePlayState extends State<YoutubePlay> {
 
   @override
   void initState() {
+    if (appname!.toUpperCase() == "PRAVCHAN") {
+      currentappname = "PRAVCHAN";
+    } else {
+      currentappname = "HOME";
+    }
+
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) => setup());
 
     _controller = ScrollController();
-    _controller.addListener(_scrollListener);
+    _controller!.addListener(_scrollListener);
 
     _controllers = YoutubePlayerController(
-      initialVideoId: songid,
+      initialVideoId: songid!,
       params: const YoutubePlayerParams(
         startAt: const Duration(seconds: 30),
         showControls: true,
@@ -86,8 +93,8 @@ class _YoutubePlayState extends State<YoutubePlay> {
     )..listen((event) {
         //log(event.toString());
       });
-    _controllers.onEnterFullscreen = () => print('Entered Fullscreen');
-    _controllers.onExitFullscreen = () {
+    _controllers!.onEnterFullscreen = () => print('Entered Fullscreen');
+    _controllers!.onExitFullscreen = () {
       SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
       Future.delayed(const Duration(seconds: 1), () {
         SystemChrome.setPreferredOrientations(DeviceOrientation.values);
@@ -103,11 +110,11 @@ class _YoutubePlayState extends State<YoutubePlay> {
     // List<Video> moreVideos = await APIService.instance
     //     .fetchVideosFromPlaylist(playlistId: _channel.uploadPlaylistId);
     // List<YT_API> moreVideos = await ytApi.nextPage();
-    List<YT_API> moreVideos = await ytApi.searchVideo(query);
+    List<YT_API>? moreVideos = await ytApi.searchVideo(query!);
     // print(moreVideos.toString());
     // uniqueList(moreVideos);
     // List<YT_API> ytResultLoaded = ytResult..addAll(moreVideos);
-    List<YT_API> ytResultLoaded = uniqueList(moreVideos);
+    List<YT_API> ytResultLoaded = uniqueList(moreVideos!);
 
     setState(() {
       ytResult = ytResultLoaded.toSet().toList();
@@ -116,9 +123,9 @@ class _YoutubePlayState extends State<YoutubePlay> {
   }
 
   List<YT_API> uniqueList(List<YT_API> input) {
-    List<YT_API> ytResultLoaded = ytResult;
+    List<YT_API>? ytResultLoaded = ytResult;
     for (int j = 0; j < input.length; j++) {
-      String videoid = input[j].id;
+      String? videoid = input[j].id;
       bool idfound = false;
       for (int i = 0; i < ytResultLoaded.length; i++) {
         if (input[j].id == ytResultLoaded[i].id) {
@@ -133,15 +140,15 @@ class _YoutubePlayState extends State<YoutubePlay> {
   }
 
   _scrollListener() {
-    if (_controller.offset >= _controller.position.maxScrollExtent &&
-        !_controller.position.outOfRange) {
+    if (_controller!.offset >= _controller!.position.maxScrollExtent &&
+        !_controller!.position.outOfRange) {
       _loadMoreVideos();
       setState(() {
         print("reach the bottom");
       });
     }
-    if (_controller.offset <= _controller.position.minScrollExtent &&
-        !_controller.position.outOfRange) {
+    if (_controller!.offset <= _controller!.position.minScrollExtent &&
+        !_controller!.position.outOfRange) {
       setState(() {
         print("reach the top");
       });
@@ -150,98 +157,84 @@ class _YoutubePlayState extends State<YoutubePlay> {
 
   @override
   Widget build(BuildContext context) {
-    return new Scaffold(
-      // home: new Scaffold(
-      appBar: AppBar(
-        elevation: 0,
-        backgroundColor: AppColors.styleColor,
-        centerTitle: true,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back),
-          onPressed: () {
-            Route route;
-            switch (appname) {
-              case "Pravchan":
-                route = MaterialPageRoute(
-                  builder: (_) => MuniPage(),
-                );
-                break;
-              case "Jain Rasoi":
-                route = MaterialPageRoute(
-                  builder: (_) => HomePage(),
-                );
-                break;
-              default:
-                route = MaterialPageRoute(
-                  builder: (_) => HomePage(),
-                );
-            }
-            Navigator.of(context).push(route);
-            // Navigator.of(context).push(
-            //   MaterialPageRoute(
-            //     builder: (_) => MuniPage(
-            //       appname: appname,
-            //       // data: ndata,
-            //     ),
-            //   ),
-            // );
-          },
-        ),
-        title: Text(
-          selectlang.getAlbum("Tirthankar", lang_selection),
-          style: TextStyle(color: AppColors.white),
-        ),
-      ),
-      backgroundColor: AppColors.mainColor,
-      body: videolist == 0
-          ? new Container(
-              child: ListView.builder(
-                controller: _controller,
-                // shrinkWrap: true,
-                // itemCount: appname.contains("Live") ? 1 : ytResult.length,
-                itemCount: ytResult.length,
-                itemBuilder: (_, int index) => listCardView(index),
-              ),
-            )
-          : Center(
-              child: CircularProgressIndicator(
-                valueColor: AlwaysStoppedAnimation<Color>(
-                  Theme.of(context).primaryColor, // Red
-                ),
-                // commonmethod.isInternet(context),
-              ),
+    return WillPopScope(
+      onWillPop: () {
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (_) => HomePage(
+              appname: appname,
+              // data: ndata,
             ),
+          ),
+        );
+        throw "Unable to load Homepage on backpress";
+      },
+      child: new Scaffold(
+        // home: new Scaffold(
+        appBar: commonmethod.buildAppBar(context, appname!),
+        // GradientAppBar(
+        //   elevation: 0,
+        //   // backgroundColor: AppColors.styleColor,
+        //   centerTitle: true,
+        //   backgroundColorStart: Colors.red,
+        //   backgroundColorEnd: Colors.purple,
+        //   title: Text(
+        //     selectlang.getAlbum("Tirthankar", lang_selection),
+        //     style: TextStyle(color: AppColors.white),
+        //   ),
+        // ),
+        drawer: new Drawer(child: CustomeBuildDrawer()),
+        backgroundColor: AppColors.mainColor,
+        body: videolist == 0
+            ? new Container(
+                child: ListView.builder(
+                  controller: _controller,
+                  // shrinkWrap: true,
+                  // itemCount: appname.contains("Live") ? 1 : ytResult.length,
+                  itemCount: ytResult.length,
+                  itemBuilder: (_, int index) => listCardView(index),
+                ),
+              )
+            : Center(
+                child: CircularProgressIndicator(
+                  valueColor: AlwaysStoppedAnimation<Color>(
+                    Theme.of(context).primaryColor, // Red
+                  ),
+                  // commonmethod.isInternet(context),
+                ),
+              ),
 
-      // body: ytResult != null
-      //     ? NotificationListener<ScrollNotification>(
-      //         onNotification: (ScrollNotification scrollDetails) {
-      //           if (!_isLoading && ytResult.length != ytResult[0].totalresult && scrollDetails.metrics.pixels ==
-      //                   scrollDetails.metrics.maxScrollExtent) {
-      //             _loadMoreVideos();
-      //           }
-      //           return false;
-      //         },
-      //         child: ListView.builder(
-      //           itemCount: ytResult.length,
-      //           itemBuilder: (_, int index) => listCardView(index),
-      //           // itemCount: 1 + _channel.videos.length,
-      //           // itemBuilder: (BuildContext context, int index) {
-      //           //   if (index == 0) {
-      //           //     return _buildProfileInfo();
-      //           //   }
-      //           //   Video video = _channel.videos[index - 1];
-      //           //   return _buildVideo(video);
-      //           // },
-      //         ),
-      //       )
-      //     : Center(
-      //         child: CircularProgressIndicator(
-      //           valueColor: AlwaysStoppedAnimation<Color>(
-      //             Theme.of(context).primaryColor, // Red
-      //           ),
-      //         ),
-      //       ),
-      // ),
+        // body: ytResult != null
+        //     ? NotificationListener<ScrollNotification>(
+        //         onNotification: (ScrollNotification scrollDetails) {
+        //           if (!_isLoading && ytResult.length != ytResult[0].totalresult && scrollDetails.metrics.pixels ==
+        //                   scrollDetails.metrics.maxScrollExtent) {
+        //             _loadMoreVideos();
+        //           }
+        //           return false;
+        //         },
+        //         child: ListView.builder(
+        //           itemCount: ytResult.length,
+        //           itemBuilder: (_, int index) => listCardView(index),
+        //           // itemCount: 1 + _channel.videos.length,
+        //           // itemBuilder: (BuildContext context, int index) {
+        //           //   if (index == 0) {
+        //           //     return _buildProfileInfo();
+        //           //   }
+        //           //   Video video = _channel.videos[index - 1];
+        //           //   return _buildVideo(video);
+        //           // },
+        //         ),
+        //       )
+        //     : Center(
+        //         child: CircularProgressIndicator(
+        //           valueColor: AlwaysStoppedAnimation<Color>(
+        //             Theme.of(context).primaryColor, // Red
+        //           ),
+        //         ),
+        //       ),
+        // ),
+      ),
     );
   }
 
@@ -277,13 +270,13 @@ class _YoutubePlayState extends State<YoutubePlay> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: <Widget>[
                   new Text(
-                    ytResult[index].title,
+                    ytResult[index].title!,
                     softWrap: true,
                     style: TextStyle(fontSize: 18.0),
                   ),
                   new Padding(padding: EdgeInsets.only(bottom: 1.5)),
                   new Text(
-                    ytResult[index].channelTitle,
+                    ytResult[index].channelTitle!,
                     softWrap: true,
                   ),
                   new Padding(padding: EdgeInsets.only(bottom: 3.0)),
@@ -325,8 +318,8 @@ class _YoutubePlayState extends State<YoutubePlay> {
           Navigator.of(context).push(
             MaterialPageRoute(
               builder: (_) => YoutubeAppDemo(
-                id: ytResult[index].id,
-                appname: appname,
+                id: ytResult[index].id!,
+                appname: appname!,
                 // data: ndata,
               ),
             ),
@@ -370,7 +363,7 @@ class _YoutubePlayState extends State<YoutubePlay> {
                       // new Padding(padding: EdgeInsets.only(left: 10,right: 10)),
                       child: Marquee(
                         child: Text(
-                          ytResult[index].title,
+                          ytResult[index].title!,
                           softWrap: true,
                           style: TextStyle(fontSize: 18.0),
                         ),

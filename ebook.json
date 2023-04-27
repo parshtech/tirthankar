@@ -1,0 +1,408 @@
+{
+	"version": 2,
+	"booktype": [
+		{
+			"id": 1,
+			"title": "BHAKTAMBAR BOOK",
+			"album": "BHAKTAMBAR",
+			"hindiName":"भक्तांम्बर पुस्तक",
+			"mname": "भक्तांम्बर पुस्तक",
+			"songURL": "https://www.parshtech.com/DATA/EBOOK/Jain_Bhajan.pdf"
+		},
+		{
+			"id": 2,
+			"title": "JAIN AARTI BOOK",
+			"album": "JAIN AARTI",
+			"hindiName": "जैन आरती पुस्तक",
+			"mname": "जैन आरती पुस्तक",
+			"songURL": "https://www.parshtech.com/DATA/EBOOK/Jain_Bhajan.pdf"
+		},
+		{
+			"id": 3,
+			"title": "DAILY POOJA BOOK",
+			"album": "DAILY POOJA",
+			"hindiName": "दैनंदिन पूजा पुस्तक",
+			"mname": "दैनंदिन पूजा पुस्तक",
+			"songURL": "https://www.parshtech.com/DATA/EBOOK/Jain_Bhajan.pdf"
+		},
+		{
+			"id": 4,
+			"title": "JAIN POOJA BOOK",
+			"album": "JAIN POOJA",
+			"hindiName": "जैन पूजा पुस्तक",
+			"mname": "जैन पूजा पुस्तक",
+			"songURL": "https://www.parshtech.com/DATA/EBOOK/Jain_Bhajan.pdf"
+		},
+		{
+			"id": 5,
+			"title": "JAIN BHAJAN BOOK",
+			"album": "JAIN BHAJAN",
+			"hindiName": "जैन भजन पुस्तक",
+			"mname": "जैन भजन पुस्तक",
+			"songURL": "https://www.parshtech.com/DATA/EBOOK/Jain_Bhajan.pdf"
+		},
+
+		{
+			"id": 6,
+			"title": "VIDHAN BOOK",
+			"album": "VIDHAN",
+			"hindiName": "विधान पुस्तक",
+			"mname": "विधान पुस्तक",
+			"songURL": "https://www.parshtech.com/DATA/EBOOK/Jain_Bhajan.pdf"
+		},
+		{
+			"id": 7,
+			"title": "KIDS BOOK",
+			"album": "KIDS BOOK",
+			"hindiName": "बच्चो के लिये पुस्तक",
+			"mname": "बच्चो के लिये पुस्तक",
+			"songURL": "https://www.parshtech.com/DATA/EBOOK/Jain_Bhajan.pdf"
+		},
+		{
+			"id": 8,
+			"title": "JAIN BOOK",
+			"album": "JAIN BOOK",
+			"hindiName": "जैन पुस्तक",
+			"mname": "जैन पुस्तक",
+			"songURL": "https://www.parshtech.com/DATA/EBOOK/Jain_Bhajan.pdf"
+		},
+		{
+			"id": 9,
+			"title": "JAIN MAGAZINE",
+			"album": "JAIN MAGAZINE",
+			"hindiName": "जैन पत्रिका",
+			"mname": "जैन पत्रिका",
+			"songURL": "https://www.parshtech.com/DATA/EBOOK/Jain_Bhajan.pdf"
+		}
+	],
+	"tags": [{
+			"id": 1,
+			"linkid": 5,
+			"title": "JAIN BHAJAN",
+			"album": "JAIN BHAJAN",
+			"hindiName": "जैन भजन ",
+			"language": "MARATHI",
+			"pdfpage": 0,
+			"pdffile": "Jain_Bhajan.pdf",
+			"songURL": "https://www.parshtech.com/DATA/EBOOK/Jain_Bhajan.pdf"
+		},
+		{
+			"id": 2,
+			"linkid": 2,
+			"title": "JAIN AARTI",
+			"album": "MARATHI",
+			"hindiName": "जैन आरती",
+			"language": "MARATHI & HINDI",
+			"pdfpage": 0,
+			"pdffile": "jainaarti.pdf",
+			"songURL": "https://www.parshtech.com/DATA/EBOOK/jainaarti.pdf"
+		},
+		{
+			"id": 3,
+			"linkid": 3,
+			"title": "DAILY POOJA",
+			"album": "DAILY POOJA",
+			"language": "MARATHI & HINDI",
+			"pdfpage": 0,
+			"hindiName": "दैनंदिन पूजा",
+			"pdffile": "Daily Pooja.pdf",
+			"songURL": "https://www.parshtech.com/DATA/EBOOK/Daily Pooja.pdf"
+		},
+		{
+			"id": 4,
+			"linkid": 1,
+			"title": "BHAKTAMBAR_STOTRA",
+			"album": "BHAKTAMBAR",
+			"language": "MARATHI & HINDI",
+			"pdfpage": 0,
+			"hindiName": "भक्तांम्बर स्तोत्र",
+			"pdffile": "Bhaktamar_Stotra.pdf",
+			"songURL": "https://www.parshtech.com/DATA/EBOOK/Bhaktamar_Stotra.pdf"
+		},
+		{
+			"id": 5,
+			"linkid": 8,
+			"title": "CHAR TIRTHANKAR",
+			"album": "JAIN BOOK",
+			"language": "HINDI",
+			"pdfpage": 0,
+			"hindiName": "चार तीर्थंकर",
+			"pdffile": "Char Tirthankar.pdf",
+			"songURL": "https://www.parshtech.com/DATA/EBOOK/Char Tirthankar.pdf"
+		},
+		{
+			"id": 6,
+			"linkid": 8,
+			"title": "PANCH SANGRAH",
+			"album": "JAIN BOOK",
+			"language": "HINDI",
+			"pdfpage": 0,
+			"hindiName": "पञ्चसंग्रह",
+			"pdffile": "Panch sangrah.pdf",
+			"songURL": "https://www.parshtech.com/DATA/EBOOK/Panch sangrah.pdf"
+		},
+		{
+			"id": 7,
+			"linkid": 7,
+			"title": "JAIN ITIHAS KI PRERAK KATHAYE",
+			"album": "KIDS BOOK",
+			"language": "HINDI",
+			"pdfpage": 0,
+			"hindiName": "जैन इतिहास की प्रेरक कथायें",
+			"pdffile": "Jain Itihas ki Prerak Kathaye.pdf",
+			"songURL": "https://www.parshtech.com/DATA/EBOOK/Jain Itihas ki Prerak Kathaye.pdf"
+		},
+		{
+			"id": 8,
+			"linkid": 7,
+			"title": "JAIN BAL SHIKSHA PART 1",
+			"album": "KIDS BOOK",
+			"language": "HINDI",
+			"pdfpage": 0,
+			"hindiName": "जैन बाल शिक्षा भाग 1",
+			"pdffile": "Jain_Bal_Shiksha_Part_1.pdf",
+			"songURL": "https://www.parshtech.com/DATA/EBOOK/Jain_Bal_Shiksha_Part_1.pdf"
+		},
+		{
+			"id": 9,
+			"linkid": 7,
+			"title": "JAIN BAL SHIKSHA PART 2",
+			"album": "KIDS BOOK",
+			"language": "HINDI",
+			"pdfpage": 0,
+			"hindiName": "जैन बाल शिक्षा भाग 2",
+			"pdffile": "Jain_Bal_Shiksha_Part_2.pdf",
+			"songURL": "https://www.parshtech.com/DATA/EBOOK/Jain_Bal_Shiksha_Part_2.pdf"
+		},
+		{
+			"id": 10,
+			"linkid": 7,
+			"title": "JAIN BAL SHIKSHA PART 3",
+			"album": "KIDS BOOK",
+			"language": "HINDI",
+			"pdfpage": 0,
+			"hindiName": "जैन बाल शिक्षा भाग 3",
+			"pdffile": "Jain_Bal_Shiksha_Part_3.pdf",
+			"songURL": "https://www.parshtech.com/DATA/EBOOK/Jain_Bal_Shiksha_Part_3.pdf"
+		},
+		{
+			"id": 11,
+			"linkid": 8,
+			"title": "SHRI 108 NAVKAR",
+			"album": "JAIN BOOK",
+			"language": "HINDI",
+			"pdfpage": 0,
+			"hindiName": "श्री 108 नवकार",
+			"pdffile": "Shri 108 Navkar.pdf",
+			"songURL": "https://www.parshtech.com/DATA/EBOOK/Shri 108 Navkar.pdf"
+		},
+		{
+			"id": 12,
+			"linkid": 8,
+			"title": "CHAR TIRTHANKAR",
+			"album": "JAIN BOOK",
+			"language": "HINDI",
+			"pdfpage": 0,
+			"hindiName": "चार तीर्थंकर",
+			"pdffile": "Char Tirthankar.pdf",
+			"songURL": "https://www.parshtech.com/DATA/EBOOK/Char Tirthankar.pdf"
+		},
+		{
+			"id": 13,
+			"linkid": 6,
+			"title": "BHAKTAMBAR VIDHAN",
+			"album": "VIDHAN",
+			"language": "HINDI",
+			"pdfpage": 0,
+			"hindiName": "भक्तांम्बर विधान",
+			"pdffile": "Bhaktamar_vidhan.pdf",
+			"songURL": "https://www.parshtech.com/DATA/EBOOK/Bhaktamar_vidhan.pdf"
+		},
+		{
+			"id": 14,
+			"linkid": 6,
+			"title": "SHANTI VIDHAN",
+			"album": "VIDHAN",
+			"language": "HINDI",
+			"pdfpage": 0,
+			"hindiName": "शांति विधान ",
+			"pdffile": "Shanti_vidhan.pdf",
+			"songURL": "https://www.parshtech.com/DATA/EBOOK/Shanti_vidhan.pdf"
+		},
+		{
+			"id": 15,
+			"linkid": 4,
+			"title": "DEEPAVALI POOJA",
+			"album": "JAIN POOJA",
+			"language": "HINDI",
+			"pdfpage": 34,
+			"hindiName": "दीपावली पूजा",
+			"pdffile": "Daily Pooja.pdf",
+			"songURL": "https://www.parshtech.com/DATA/EBOOK/Daily Pooja.pdf"
+		},
+		{
+			"id": 17,
+			"linkid": 4,
+			"title": "PARSHWANATH POOJA",
+			"album": "JAIN POOJA",
+			"language": "HINDI",
+			"pdfpage": 30,
+			"hindiName": "पार्श्वनाथ पूजा",
+			"pdffile": "Daily Pooja.pdf",
+			"songURL": "https://www.parshtech.com/DATA/EBOOK/Daily Pooja.pdf"
+		},
+		{
+			"id": 18,
+			"linkid": 4,
+			"title": "ARIHANT POOJA",
+			"album": "JAIN POOJA",
+			"language": "HINDI",
+			"pdfpage": 24,
+			"hindiName": "अरिहंत पूजा",
+			"pdffile": "Daily Pooja.pdf",
+			"songURL": "https://www.parshtech.com/DATA/EBOOK/Daily Pooja.pdf"
+		},
+		{
+			"id": 19,
+			"linkid": 4,
+			"title": "SIDHHA POOJA",
+			"album": "JAIN POOJA",
+			"language": "HINDI",
+			"pdfpage": 27,
+			"hindiName": "सिद्ध पूजा",
+			"pdffile": "Daily Pooja.pdf",
+			"songURL": "https://www.parshtech.com/DATA/EBOOK/Daily Pooja.pdf"
+		},
+		{
+			"id": 20,
+			"linkid": 4,
+			"title": "DEVSHASTRA POOJA",
+			"album": "JAIN POOJA",
+			"language": "HINDI",
+			"pdfpage": 22,
+			"hindiName": "देवशास्त्र पूजा",
+			"pdffile": "Daily Pooja.pdf",
+			"songURL": "https://www.parshtech.com/DATA/EBOOK/Daily Pooja.pdf"
+		},
+		{
+			"id": 21,
+			"linkid": 4,
+			"title": "GURU POOJA",
+			"album": "JAIN POOJA",
+			"language": "HINDI",
+			"pdfpage": 37,
+			"hindiName": "गुरु पूजा",
+			"pdffile": "Daily Pooja.pdf",
+			"songURL": "https://www.parshtech.com/DATA/EBOOK/Daily Pooja.pdf"
+		},
+		{
+			"id": 22,
+			"linkid": 4,
+			"title": "AADINATH POOJA",
+			"album": "JAIN POOJA",
+			"language": "HINDI",
+			"pdfpage": 39,
+			"hindiName": "आदिनाथ पूजा",
+			"pdffile": "Daily Pooja.pdf",
+			"songURL": "https://www.parshtech.com/DATA/EBOOK/Daily Pooja.pdf"
+		},
+		{
+			"id": 23,
+			"linkid": 4,
+			"title": "SHANTINATH POOJA",
+			"album": "JAIN POOJA",
+			"language": "HINDI",
+			"pdfpage": 43,
+			"hindiName": "शांतिनाथ पूजा",
+			"pdffile": "Daily Pooja.pdf",
+			"songURL": "https://www.parshtech.com/DATA/EBOOK/Daily Pooja.pdf"
+		},
+		{
+			"id": 24,
+			"linkid": 4,
+			"title": "MAHAVEER POOJA",
+			"album": "JAIN POOJA",
+			"language": "HINDI",
+			"pdfpage": 45,
+			"hindiName": "महावीर पूजा",
+			"pdffile": "Daily Pooja.pdf",
+			"songURL": "https://www.parshtech.com/DATA/EBOOK/Daily Pooja.pdf"
+		},
+		{
+			"id": 25,
+			"linkid": 4,
+			"title": "SOLHKARAN POOJA",
+			"album": "JAIN POOJA",
+			"language": "HINDI",
+			"pdfpage": 87,
+			"hindiName": "सोलहकारण पूजा",
+			"pdffile": "Daily Pooja.pdf",
+			"songURL": "https://www.parshtech.com/DATA/EBOOK/Daily Pooja.pdf"
+		},
+		{
+			"id": 26,
+			"linkid": 4,
+			"title": "PANCHMERU POOJA",
+			"album": "JAIN POOJA",
+			"language": "HINDI",
+			"pdfpage": 95,
+			"hindiName": "पंचमेरू पूजा",
+			"pdffile": "Daily Pooja.pdf",
+			"songURL": "https://www.parshtech.com/DATA/EBOOK/Daily Pooja.pdf"
+		},
+		{
+			"id": 27,
+			"linkid": 4,
+			"title": "NANDISHWAR POOJA",
+			"album": "JAIN POOJA",
+			"language": "HINDI",
+			"pdfpage": 99,
+			"hindiName": "नंदीश्वर पूजा",
+			"pdffile": "Daily Pooja.pdf",
+			"songURL": "https://www.parshtech.com/DATA/EBOOK/Daily Pooja.pdf"
+		},
+		{
+			"id": 28,
+			"linkid": 4,
+			"title": "DASHLAKSHAN DHARM POOJA",
+			"album": "JAIN POOJA",
+			"language": "HINDI",
+			"pdfpage": 103,
+			"hindiName": "दशलक्षण धर्म  पूजा",
+			"pdffile": "Daily Pooja.pdf",
+			"songURL": "https://www.parshtech.com/DATA/EBOOK/Daily Pooja.pdf"
+		},
+		{
+			"id": 29,
+			"linkid": 4,
+			"title": "RATNATRAY POOJA",
+			"album": "JAIN POOJA",
+			"language": "HINDI",
+			"pdfpage": 103,
+			"hindiName": "रत्नत्रय पूजा",
+			"pdffile": "Daily Pooja.pdf",
+			"songURL": "https://www.parshtech.com/DATA/EBOOK/Daily Pooja.pdf"
+		},
+		{
+			"id": 30,
+			"linkid": 3,
+			"title": "SHANTIMANTRA",
+			"album": "DAILY POOJA",
+			"language": "HINDI",
+			"pdfpage": 12,
+			"hindiName": "शांतिमंत्र",
+			"pdffile": "Daily Pooja.pdf",
+			"songURL": "https://www.parshtech.com/DATA/EBOOK/Daily Pooja.pdf"
+		}, {
+			"id": 16,
+			"linkid": 9,
+			"title": "SAITWAL SANDESH JAN-FEB 2021.pdf",
+			"album": "DAILY POOJA",
+			"language": "MARATHI",
+			"pdfpage": 12,
+			"hindiName": "सैतवाल संदेश जानेवारी- फेब्रुवारी 2021",
+			"pdffile": "SAITWAL SANDESH JAN-FEB 2021.pdf",
+			"songURL": "https://www.parshtech.com/DATA/EBOOK/SAITWAL SANDESH JAN-FEB 2021.pdf"
+		}
+	]
+}

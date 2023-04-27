@@ -8,19 +8,21 @@ class DetailPage extends StatefulWidget {
   _DetailPageState createState() => _DetailPageState();
 }
 
-class _DetailPageState extends State<DetailPage> with SingleTickerProviderStateMixin {
+class _DetailPageState extends State<DetailPage>
+    with SingleTickerProviderStateMixin {
   var _value;
   var isPlay;
-  AnimationController _controller;
+  AnimationController? _controller;
 
   @override
   void initState() {
-    _controller = AnimationController(vsync: this,duration: Duration(microseconds: 250));
+    _controller =
+        AnimationController(vsync: this, duration: Duration(microseconds: 250));
     _value = 0.0;
     isPlay = true;
     super.initState();
   }
-  
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -83,7 +85,8 @@ class _DetailPageState extends State<DetailPage> with SingleTickerProviderStateM
               );
             },
           ),
-          Text("Song Name",
+          Text(
+            "Song Name",
             style: TextStyle(
               color: AppColors.styleColor,
               fontSize: 32,
@@ -98,95 +101,96 @@ class _DetailPageState extends State<DetailPage> with SingleTickerProviderStateM
               value: _value,
               labelStart: "1.21",
               labelend: "3.46",
-
             ),
           ),
           Expanded(child: SizedBox()),
-          
+
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 42),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: <Widget>[
                 CustomButtonWidget(
-                    size: 50,
-                    onTap: () {
-                      Navigator.of(context).pop();
-                    },
-                    child: Icon(
-                      Icons.skip_previous,
-                      color: AppColors.styleColor,
-                    ),
-                    borderWidth: 5,
+                  size: 50,
+                  onTap: () {
+                    Navigator.of(context).pop();
+                  },
+                  child: Icon(
+                    Icons.skip_previous,
+                    color: AppColors.styleColor,
                   ),
-                  CustomButtonWidget(
-                    size: 50,
-                    onTap: () {
-                      setState(() {
-                        if(_value > .1){
-                          _value -= .1;
-                        }                        
-                      });
-                    },
-                    child: Icon(
-                      Icons.fast_rewind,
-                      color: AppColors.styleColor,
-                    ),
-                    borderWidth: 5,
-                  ),
-                  CustomButtonWidget(
-                    size: 80,
-                    onTap: () {
-                      if (_controller.value==0) {
-                        _controller.forward();
-                        setState(() {
-                          isPlay = false;
-                        });
-                      } else {
-                        _controller.reverse();
-                        setState(() {
-                          isPlay = true;
-                        }); 
+                  borderWidth: 5,
+                ),
+                CustomButtonWidget(
+                  size: 50,
+                  onTap: () {
+                    setState(() {
+                      if (_value > .1) {
+                        _value -= .1;
                       }
-                    },
-                    child: AnimatedIcon(
-                        icon: AnimatedIcons.pause_play,
-                        progress: _controller,
-                        color: isPlay ? Colors.white : AppColors.styleColor,                        
-                      ),
-                      borderWidth: 5,
-                      isActive: isPlay,                   
+                    });
+                  },
+                  child: Icon(
+                    Icons.fast_rewind,
+                    color: AppColors.styleColor,
                   ),
-                  CustomButtonWidget(
-                    size: 50,
-                    onTap: () {
+                  borderWidth: 5,
+                ),
+                CustomButtonWidget(
+                  size: 80,
+                  onTap: () {
+                    if (_controller!.value == 0) {
+                      _controller!.forward();
                       setState(() {
-                        if(_value < .9){
-                          _value += .1;
-                        }
+                        isPlay = false;
                       });
-                    },
-                    child: Icon(
-                      Icons.fast_forward,
-                      color: AppColors.styleColor,
-                    ),
-                    borderWidth: 5,
+                    } else {
+                      _controller!.reverse();
+                      setState(() {
+                        isPlay = true;
+                      });
+                    }
+                  },
+                  child: AnimatedIcon(
+                    icon: AnimatedIcons.pause_play,
+                    progress: _controller!,
+                    color: isPlay ? Colors.white : AppColors.styleColor,
                   ),
-                  CustomButtonWidget(
-                    size: 50,
-                    onTap: () {
-                      Navigator.of(context).pop();
-                    },
-                    child: Icon(
-                      Icons.skip_next,
-                      color: AppColors.styleColor,
-                    ),
-                    borderWidth: 5,
-                  )
+                  borderWidth: 5,
+                  isActive: isPlay,
+                ),
+                CustomButtonWidget(
+                  size: 50,
+                  onTap: () {
+                    setState(() {
+                      if (_value < .9) {
+                        _value += .1;
+                      }
+                    });
+                  },
+                  child: Icon(
+                    Icons.fast_forward,
+                    color: AppColors.styleColor,
+                  ),
+                  borderWidth: 5,
+                ),
+                CustomButtonWidget(
+                  size: 50,
+                  onTap: () {
+                    Navigator.of(context).pop();
+                  },
+                  child: Icon(
+                    Icons.skip_next,
+                    color: AppColors.styleColor,
+                  ),
+                  borderWidth: 5,
+                )
               ],
             ),
           ),
-          SizedBox(height: 25), //This will add bottom side 25 padding, so button will not be all the way to bottom
+          SizedBox(
+              height:
+                  25), //This will add bottom side 25 padding, so button will not be all the way to bottom
         ],
       ),
     );

@@ -2,7 +2,7 @@
     // launch.json
     "version": "0.2.0",
     "configurations": [
-        {
+           {
             "name": "Mobile",
             "type": "dart",
             "request": "launch",

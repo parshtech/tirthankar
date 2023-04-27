@@ -33,6 +33,21 @@
               android:name="io.flutter.embedding.android.SplashScreenDrawable"
               android:resource="@drawable/launch_background"
               />
+              <!-- <meta-data
+    android:name="assets.audio.player.notification.icon.play"
+    android:resource="@drawable/ic_play_custom"/>
+<meta-data
+    android:name="assets.audio.player.notification.icon.pause"
+    android:resource="@drawable/ic_pause_custom"/> -->
+<!-- <meta-data
+    android:name="assets.audio.player.notification.icon.stop"
+    android:resource="@drawable/ic_stop_custom"/>
+<meta-data
+    android:name="assets.audio.player.notification.icon.next"
+    android:resource="@drawable/ic_next_custom"/>
+<meta-data
+    android:name="assets.audio.player.notification.icon.prev"
+    android:resource="@drawable/ic_prev_custom"/> -->
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>

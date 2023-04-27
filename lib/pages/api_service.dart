@@ -5,7 +5,6 @@ import 'package:Tirthankar/core/keys.dart';
 import 'package:Tirthankar/models/video_model.dart';
 import 'package:Tirthankar/models/channel_model.dart';
 
-
 class APIService {
   APIService._instantiate();
 
@@ -14,7 +13,7 @@ class APIService {
   final String _baseUrl = 'www.googleapis.com';
   String _nextPageToken = '';
 
-  Future<Channel> fetchChannel({String channelId}) async {
+  Future<Channel> fetchChannel({required String channelId}) async {
     Map<String, String> parameters = {
       'part': 'snippet, contentDetails, statistics',
       'id': channelId,
@@ -45,10 +44,11 @@ class APIService {
     }
   }
 
-  Future<List<Video>> fetchVideosFromPlaylist({String playlistId}) async {
+  Future<List<Video>> fetchVideosFromPlaylist(
+      {required String? playlistId}) async {
     Map<String, String> parameters = {
       'part': 'snippet',
-      'playlistId': playlistId,
+      'playlistId': playlistId!,
       'maxResults': '8',
       'pageToken': _nextPageToken,
       'key': YOUTUBE_KEY,
@@ -82,19 +82,20 @@ class APIService {
       throw json.decode(response.body)['error']['message'];
     }
   }
-  Future<List<Video>> searchVideo({String playlistId}) async {
-    Map<String, String> parameters;
-    if (_nextPageToken == null){
+
+  Future<List<Video>> searchVideo({required String playlistId}) async {
+    Map<String, String>? parameters;
+    if (_nextPageToken == null) {
       parameters = {
-      'part': 'snippet',
-      'q': playlistId,      
-      'maxResults': '10',      
-      'key': YOUTUBE_KEY,
+        'part': 'snippet',
+        'q': playlistId,
+        'maxResults': '10',
+        'key': YOUTUBE_KEY,
       };
     } else {
       Map<String, String> parameters = {
         'part': 'snippet',
-        'q': playlistId,      
+        'q': playlistId,
         'maxResults': '10',
         'pageToken': _nextPageToken,
         'key': YOUTUBE_KEY,
@@ -102,7 +103,7 @@ class APIService {
     }
     // Map<String, String> parameters = {
     //   'part': 'snippet',
-    //   'q': playlistId,      
+    //   'q': playlistId,
     //   'maxResults': '10',
     //   'pageToken': _nextPageToken,
     //   'key': YOUTUBE_KEY,
@@ -136,5 +137,4 @@ class APIService {
       throw json.decode(response.body)['error']['message'];
     }
   }
-
 }

@@ -2,29 +2,26 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:dio/dio.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
-import 'package:Tirthankar/core/keys.dart';
 import 'package:Tirthankar/pages/_api.dart';
-import 'package:dio/src/response.dart' as eos;
 // import 'package:youtube_api/_api.dart';
 
 class YoutubeAPIA {
-  static const MethodChannel _channel = const MethodChannel('youtube_api');
-  String key;
-  String type;
-  String query;
-  String prevPageToken;
-  String nextPageToken;
-  int maxResults;
-  API api;
-  int page;
+  static const MethodChannel? _channel = const MethodChannel('youtube_api');
+  String? key;
+  String? type;
+  String? query;
+  String? prevPageToken;
+  String? nextPageToken;
+  int? maxResults;
+  API? api;
+  int? page;
   final String _baseUrl = 'www.googleapis.com';
 
 //  Constructor
-  YoutubeAPIA(this.key, {String type, int maxResults: 10}) {
+  YoutubeAPIA(this.key, {String? type, int maxResults: 10}) {
     page = 0;
     this.type = type;
     this.maxResults = maxResults;
@@ -32,9 +29,9 @@ class YoutubeAPIA {
   }
 
 //  For Searching on YouTube
-  Future<List> search(String query, {String type}) async {
+  Future<List<YT_API>> search(String query, {String? type}) async {
     this.query = query;
-    Uri url = api.searchUri(query, type: type);
+    Uri url = api!.searchUri(query, type: type);
     var res = await http.get(url, headers: {"Accept": "application/json"});
     var jsonData = json.decode(res.body);
     print(url);
@@ -48,15 +45,16 @@ class YoutubeAPIA {
     return result;
   }
 
-  Future<List> searchVideo(String query) async {
+  Future<List<YT_API>?> searchVideo(String query) async {
     bool nextpage = false;
     Map<String, String> parameters;
+
     if (nextPageToken == null) {
       parameters = {
         'part': 'snippet',
         'q': query,
         'maxResults': '10',
-        'key': key,
+        'key': key!,
       };
     } else {
       nextpage = true;
@@ -64,8 +62,8 @@ class YoutubeAPIA {
         'part': 'snippet',
         'q': query,
         'maxResults': '10',
-        'pageToken': nextPageToken,
-        'key': key,
+        'pageToken': nextPageToken!,
+        'key': key!,
       };
     }
     // Map<String, String> parameters = {
@@ -94,8 +92,8 @@ class YoutubeAPIA {
         List<YT_API> result = [];
         nextPageToken = jsonData['nextPageToken'];
         prevPageToken = jsonData['prevPageToken'];
-        api.setNextPageToken(nextPageToken);
-        api.setPrevPageToken(prevPageToken);
+        api!.setNextPageToken(nextPageToken!);
+        api!.setPrevPageToken(prevPageToken!);
         int total = jsonData['pageInfo']['totalResults'] <
                 jsonData['pageInfo']['resultsPerPage']
             ? jsonData['pageInfo']['totalResults']
@@ -107,7 +105,8 @@ class YoutubeAPIA {
             result.add(new YT_API(jsonData, i));
           }
         }
-        page++;
+        // ignore: unnecessary_statements
+        page! + 1;
         if (total == 0) {
           return null;
         }
@@ -126,8 +125,8 @@ class YoutubeAPIA {
   }
 
 // For getting all videos from youtube channel
-  Future<List> channel(String channelId, {String order}) async {
-    Uri url = api.channelUri(channelId, order);
+  Future<List> channel(String channelId, {String? order}) async {
+    Uri url = api!.channelUri(channelId, order!);
     var res = await http.get(url, headers: {"Accept": "application/json"});
     var jsonData = json.decode(res.body);
     List<YT_API> result = _getResultFromJson(jsonData);
@@ -139,7 +138,7 @@ class YoutubeAPIA {
     if (jsonData == null) return [];
 
     nextPageToken = jsonData['nextPageToken'];
-    api.setNextPageToken(nextPageToken);
+    api!.setNextPageToken(nextPageToken!);
     int total = jsonData['pageInfo']['totalResults'] <
             jsonData['pageInfo']['resultsPerPage']
         ? jsonData['pageInfo']['totalResults']
@@ -162,21 +161,21 @@ class YoutubeAPIA {
   }
 
 // To go on Next Page
-  Future<List> nextPage() async {
+  Future<List?> nextPage() async {
     List<YT_API> result = [];
-    Uri url = api.nextPageUri();
+    Uri url = api!.nextPageUri();
     print(url);
 
     var res = await http.get(url, headers: {"Accept": "application/json"});
     var jsonData = json.decode(res.body);
-    _write(jsonData.toString(), nextPageToken);
+    _write(jsonData.toString(), nextPageToken!);
     if (jsonData['pageInfo']['totalResults'] == null) return [];
     if (jsonData == null) return [];
     print("Http response");
     nextPageToken = jsonData['nextPageToken'];
     prevPageToken = jsonData['prevPageToken'];
-    api.setNextPageToken(nextPageToken);
-    api.setPrevPageToken(prevPageToken);
+    api!.setNextPageToken(nextPageToken!);
+    api!.setPrevPageToken(prevPageToken!);
     int total = jsonData['pageInfo']['totalResults'] <
             jsonData['pageInfo']['resultsPerPage']
         ? jsonData['pageInfo']['totalResults']
@@ -184,16 +183,16 @@ class YoutubeAPIA {
     for (int i = 0; i < total; i++) {
       result.add(new YT_API(jsonData, i));
     }
-    page++;
+    page! + 1;
     if (total == 0) {
       return null;
     }
     return result;
   }
 
-  Future<List> prevPage() async {
+  Future<List<YT_API>?> prevPage() async {
     List<YT_API> result = [];
-    Uri url = api.nextPageUri();
+    Uri url = api!.nextPageUri();
     print(url);
     var res = await http.get(url, headers: {"Accept": "application/json"});
     var jsonData = json.decode(res.body);
@@ -204,8 +203,8 @@ class YoutubeAPIA {
 
     nextPageToken = jsonData['nextPageToken'];
     prevPageToken = jsonData['prevPageToken'];
-    api.setNextPageToken(nextPageToken);
-    api.setPrevPageToken(prevPageToken);
+    api!.setNextPageToken(nextPageToken!);
+    api!.setPrevPageToken(prevPageToken!);
     int total = jsonData['pageInfo']['totalResults'] <
             jsonData['pageInfo']['resultsPerPage']
         ? jsonData['pageInfo']['totalResults']
@@ -220,12 +219,12 @@ class YoutubeAPIA {
     if (total == 0) {
       return null;
     }
-    page--;
+    page! - 1;
     return result;
   }
 
 //  Get Current Page
-  int get getPage => page;
+  int? get getPage => page;
 
 //  Getter and Setter for Max Result Per page
   set setmaxResults(int maxResults) => this.maxResults = maxResults;
@@ -233,26 +232,26 @@ class YoutubeAPIA {
   get getmaxResults => this.maxResults;
 
 //  Getter and Setter Key
-  set setKey(String key) => api.key = key;
+  set setKey(String key) => api!.key = key;
 
-  String get getKey => api.key;
+  String? get getKey => api!.key;
 
 //  Getter and Setter for query
-  set setQuery(String query) => api.query = query;
+  set setQuery(String query) => api!.query = query;
 
-  String get getQuery => api.query;
+  String? get getQuery => api!.query;
 
 //  Getter and Setter for type
-  set setType(String type) => api.type = type;
+  set setType(String type) => api!.type = type;
 
-  String get getType => api.type;
+  String? get getType => api!.type;
 }
 
 //To Reduce import
 // I added this here
 class YT_API {
   dynamic thumbnail;
-  String kind,
+  String? kind,
       id,
       publishedAt,
       channelId,
@@ -260,8 +259,9 @@ class YT_API {
       title,
       description,
       channelTitle,
+      liveBroadcastContent,
       url;
-  int totalresult;
+  int? totalresult;
 
   YT_API(dynamic jsondata, int index) {
     dynamic data = jsondata['items'][index];
@@ -275,14 +275,15 @@ class YT_API {
     id = data['id'][data['id'].keys.elementAt(1)];
     // print(data['id'].keys.elementAt(1));
 
-    url = getURL(kind, id);
+    url = getURL(kind!, id!);
     publishedAt = data['snippet']['publishedAt'];
     channelId = data['snippet']['channelId'];
     channelurl = "https://www.youtube.com/channel/$channelId";
     title = data['snippet']['title'];
-    print(title + publishedAt);
+    print(title! + publishedAt!);
     description = data['snippet']['description'];
     channelTitle = data['snippet']['channelTitle'];
+    liveBroadcastContent = data['snippet']['liveBroadcastContent'];
     totalresult = jsondata['pageInfo']['totalResults'];
 
     // print(id + publishedAt);

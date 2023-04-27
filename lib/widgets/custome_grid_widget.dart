@@ -2,14 +2,14 @@ import 'package:Tirthankar/core/const.dart';
 import 'package:flutter/material.dart';
 
 class CustomGridWidget extends StatelessWidget {
-  final Widget child;
-  final double sizew;
-  final double sizeh;
-  final double borderWidth;
-  final String image;
-  final String label;
-  final bool isActive;
-  final VoidCallback onTap;
+  final Widget? child;
+  final double? sizew;
+  final double? sizeh;
+  final double? borderWidth;
+  final String? image;
+  final String? label;
+  final bool? isActive;
+  final VoidCallback? onTap;
 
   CustomGridWidget(
       {this.child,
@@ -28,8 +28,8 @@ class CustomGridWidget extends StatelessWidget {
         Radius.elliptical(12, 12),
       ),
       border: Border.all(
-        width: borderWidth,
-        color: isActive ? AppColors.darkBlue : AppColors.mainColor,
+        width: borderWidth!,
+        color: isActive! ? AppColors.darkBlue : AppColors.mainColor,
       ),
       boxShadow: [
         BoxShadow(
@@ -50,10 +50,10 @@ class CustomGridWidget extends StatelessWidget {
     if (image != null) {
       boxDecoration = boxDecoration.copyWith(
         image:
-            DecorationImage(image: ExactAssetImage(image), fit: BoxFit.cover),
+            DecorationImage(image: ExactAssetImage(image!), fit: BoxFit.cover),
       );
     }
-    if (isActive) {
+    if (isActive!) {
       boxDecoration = boxDecoration.copyWith(
         gradient: RadialGradient(colors: [
           AppColors.lightBlue,
@@ -75,13 +75,20 @@ class CustomGridWidget extends StatelessWidget {
       width: sizew,
       height: sizeh,
       decoration: boxDecoration,
-      child: FlatButton(
-        padding: EdgeInsets.all(10),
+      child: TextButton(
+        style: TextButton.styleFrom(
+          padding: EdgeInsets.all(0),
+          shape: const RoundedRectangleBorder(
+            borderRadius: BorderRadius.all(Radius.elliptical(10, 10)),
+          ),
+          // backgroundColor: Colors.blue,
+        ),
+
         onPressed: onTap,
-        shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.all(
-          Radius.elliptical(10, 10),
-        )),
+        // shape: RoundedRectangleBorder(
+        //     borderRadius: BorderRadius.all(
+        //   Radius.elliptical(10, 10),
+        // )),
         child: SingleChildScrollView(
           child: Column(
             // mainAxisAlignment: MainAxisAlignment.end,
@@ -119,7 +126,6 @@ class CustomGridWidget extends StatelessWidget {
                 ),
               ],
             ],
-
           ),
         ),
       ),

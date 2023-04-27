@@ -1,11 +1,10 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 
 class CustomTileBuilder extends StatelessWidget {
   // final BuildContext context;
-  final String imagepath;
-  final String name;
+  final String? imagepath;
+  final String? name;
 
   CustomTileBuilder({
     // @required this.context,
@@ -27,7 +26,7 @@ class CustomTileBuilder extends StatelessWidget {
               children: <Widget>[
                 Image(
                   fit: BoxFit.fill,
-                  image: AssetImage(imagepath),
+                  image: AssetImage(imagepath!),
                 ),
                 Align(
                   alignment: Alignment.bottomCenter,
@@ -44,7 +43,7 @@ class CustomTileBuilder extends StatelessWidget {
                     child: Padding(
                       padding: const EdgeInsets.only(top: 3.0),
                       child: Text(
-                        name,
+                        name!,
                         textAlign: TextAlign.center,
                         style: TextStyle(
                             color: Colors.white,

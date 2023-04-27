@@ -1,4 +1,4 @@
-package com.parshtech.tirthankar
+package com.parshtech.jainaartimarathi
 
 import androidx.annotation.NonNull;
 import io.flutter.embedding.android.FlutterActivity

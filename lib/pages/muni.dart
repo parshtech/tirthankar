@@ -1,41 +1,37 @@
-import 'package:Tirthankar/widgets/custome_tilebuilder.dart';
+import 'package:Tirthankar/widgets/custom_buildDrawer.dart';
 import 'package:flutter/services.dart';
 
 import 'package:Tirthankar/core/const.dart';
-import 'package:Tirthankar/core/dbmanager.dart';
 import 'package:Tirthankar/core/keys.dart';
 import 'package:Tirthankar/core/language.dart';
-import 'package:Tirthankar/models/listdata.dart';
 import 'package:Tirthankar/models/music.dart';
 // import 'package:audioplayer/audioplayer.dart';
 import 'package:flutter/material.dart';
 
 import 'package:Tirthankar/pages/youtube.dart';
-import 'package:Tirthankar/pages/home.dart';
 import 'package:Tirthankar/widgets/common_methods.dart';
-import 'package:Tirthankar/widgets/custom_button_widget.dart';
-import 'package:Tirthankar/widgets/custome_grid_widget.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
+
 // import 'package:youtube_api/youtube_api.dart';
 
 class MuniPage extends StatefulWidget {
   // int playingId;
   // Data data;
-  String appname;
+  String? appname;
 
   // List<MusicData> list;
   MuniPage({this.appname});
   @override
-  _MuniPageState createState() => _MuniPageState(appname);
+  _MuniPageState createState() => _MuniPageState(appname!);
 }
 
 class _MuniPageState extends State<MuniPage> {
-  String appname;
+  String? appname;
   // Data data;
-  int lang_index;
-  bool isUpdating;
-  List<MusicData> _list;
+  int? lang_index;
+  bool? isUpdating;
+  List<MusicData>? _list;
   // final sqllitedb dbHelper = new sqllitedb();
   final languageSelector selectlang = new languageSelector();
   final common_methods commonmethod = new common_methods();
@@ -51,6 +47,8 @@ class _MuniPageState extends State<MuniPage> {
   @override
   void initState() {
     appname = "";
+    currentMuni = "";
+    currentappname = "HOME";
 
     WidgetsBinding.instance.addPostFrameCallback((_) => setup());
   }
@@ -58,7 +56,7 @@ class _MuniPageState extends State<MuniPage> {
   setup() {
     commonmethod.isInternet(context);
     // isInternet();
-    commonmethod.downloadSongList(context, appname);
+    commonmethod.downloadSongList(context, appname!);
   }
 
   @override
@@ -67,12 +65,12 @@ class _MuniPageState extends State<MuniPage> {
   @override
   Widget build(BuildContext context) {
     final myImageAndCaption = [
-      ["assets/pramansagar.png", "Praman Sagar"],
-      ["assets/tarunsagar.png", "Tarun Sagar"],
-      ["assets/vidyasagar.png", "Vidya Sagar"],
-      ["assets/hukumchand.png", "Dr. HukumChand Ji Bharill"],
-      ["assets/pulaksagar.png", "Pulak Sagar"],
-      ["assets/pushpdantsagar.png", "Pushpdant Sagar"]
+      ["assets/pramansagar.png", "PRAMAN SAGAR"],
+      ["assets/tarunsagar.png", "TARUN SAGAR"],
+      ["assets/vidyasagar.png", "VIDYA SAGAR"],
+      ["assets/hukumchand.png", "DR. HUKUMCHAND JI"],
+      ["assets/pulaksagar.png", "PULAK SAGAR"],
+      ["assets/pushpdantsagar.png", "PUSHPDANT SAGAR"]
     ];
 
     SystemChrome.setPreferredOrientations([
@@ -84,38 +82,32 @@ class _MuniPageState extends State<MuniPage> {
     return MaterialApp(
       title: 'Flutter Demo',
       home: Scaffold(
-        appBar: AppBar(
-          elevation: 0,
-          backgroundColor: AppColors.styleColor,
-          centerTitle: true,
-          leading: IconButton(
-            icon: Icon(Icons.arrow_back),
-            onPressed: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (_) => HomePage(
-                    appname: appname,
-                  ),
-                ),
-              );
-            },
-          ),
-          title: Text(
-            selectlang.getAlbum("Tirthankar", lang_selection),
-            style: TextStyle(color: AppColors.white),
-          ),
-        ),
+        appBar: commonmethod.buildAppBar(context, appname!),
+        // GradientAppBar(
+        //   elevation: 0,
+        //   // backgroundColor: AppColors.styleColor,
+        //   centerTitle: true,
+        //   backgroundColorStart: Colors.red,
+        //   backgroundColorEnd: Colors.purple,
+        //   title: Text(
+        //     selectlang.getAlbum("Tirthankar", lang_selection),
+        //     style: TextStyle(color: AppColors.white),
+        //   ),
+        // ),
+        drawer: new Drawer(child: CustomeBuildDrawer()),
         backgroundColor: AppColors.mainColor,
         body: Container(
           margin: EdgeInsets.all(12),
-          child: new StaggeredGridView.countBuilder(
-              crossAxisCount: kIsWeb ? 4 : 2,
-              crossAxisSpacing: 18,
-              mainAxisSpacing: 12,
-              itemCount: myImageAndCaption.length,
-              itemBuilder: (context, index) {
-                return GestureDetector(
+          child: new MasonryGridView.count(
+            crossAxisCount: kIsWeb ? 4 : 3,
+            crossAxisSpacing: 18,
+            mainAxisSpacing: 12,
+            itemCount: myImageAndCaption.length,
+            itemBuilder: (context, index) {
+              return GestureDetector(
                   onTap: () {
+                    currentMuni =
+                        getYoutubeSearchName(myImageAndCaption[index][1]);
                     Navigator.of(context).push(
                       MaterialPageRoute(
                         builder: (_) => YoutubePlay(
@@ -128,19 +120,45 @@ class _MuniPageState extends State<MuniPage> {
                     print("Container clicked" + myImageAndCaption[index][1]);
                   },
                   child: Container(
-                      decoration: BoxDecoration(
-                          color: Colors.transparent,
-                          borderRadius: BorderRadius.all(Radius.circular(12))),
-                      child: ClipRRect(
-                          borderRadius: BorderRadius.all(Radius.circular(12)),
-                          child: CustomTileBuilder(
-                              imagepath: myImageAndCaption[index][0],
-                              name: myImageAndCaption[index][1]))),
-                );
-              },
-              staggeredTileBuilder: (index) {
-                return new StaggeredTile.count(1, index.isEven ? 1 : 0.8);
-              }),
+                    height: 140,
+                    decoration: BoxDecoration(
+                        color: Colors.transparent,
+                        borderRadius: BorderRadius.all(Radius.circular(12))),
+                    child: Column(
+                      children: [
+                        Expanded(
+                          flex: 9,
+                          child: ClipRRect(
+                              borderRadius:
+                                  BorderRadius.all(Radius.circular(12)),
+                              child: Image.asset(myImageAndCaption[index][0],
+                                  fit: BoxFit.fill)),
+                        ),
+                        Expanded(
+                            flex: 3,
+                            child: Text(
+                              selectlang.getAlbum(
+                                  myImageAndCaption[index][1], lang_selection!),
+                              style: TextStyle(fontSize: 15),
+                            )),
+                      ],
+                    ),
+                  )
+                  // child: Container(
+                  //     decoration: BoxDecoration(
+                  //         color: Colors.transparent,
+                  //         borderRadius: BorderRadius.all(Radius.circular(12))),
+                  //     child: ClipRRect(
+                  //         borderRadius: BorderRadius.all(Radius.circular(12)),
+                  //         child: CustomTileBuilder(
+                  //             imagepath: myImageAndCaption[index][0],
+                  //             name: myImageAndCaption[index][1]))),
+                  );
+            },
+            // staggeredTileBuilder: (index) {
+            //   return new StaggeredTile.count(1, 1); //index.isEven ? 1 : 0.8);
+            // }
+          ),
         ),
 
         // GridView.count(

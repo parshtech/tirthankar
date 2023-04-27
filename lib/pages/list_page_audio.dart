@@ -6,13 +6,15 @@ import 'dart:async';
 
 // import 'dart:convert';
 import 'dart:convert' as convert;
+import 'dart:convert';
+import 'dart:io';
+import 'package:Tirthankar/core/language.dart';
 import 'package:Tirthankar/widgets/custom_buildDrawer.dart';
 import 'package:assets_audio_player/assets_audio_player.dart';
+import 'package:dio/adapter.dart';
 // import 'package:audioplayers/audioplayers.dart';
-
 import 'package:flutter/cupertino.dart';
-
-import 'package:gradient_app_bar/gradient_app_bar.dart';
+import 'dart:io' as io;
 import 'package:marquee_widget/marquee_widget.dart';
 import 'package:Tirthankar/core/const.dart';
 import 'package:Tirthankar/core/dbmanager.dart';
@@ -27,199 +29,332 @@ import 'package:Tirthankar/pages/home.dart';
 import 'package:dio/dio.dart';
 import 'package:dio/src/response.dart' as eos;
 import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:toast/toast.dart';
 
 class ListPage extends StatefulWidget {
-  String appname;
+  String? appname;
   ListPage({this.appname});
   @override
-  _ListPageState createState() => _ListPageState(appname);
+  _ListPageState createState() => _ListPageState(appname!);
+}
+
+class Debouncer {
+  final int? milliseconds;
+  VoidCallback? action;
+  Timer? _timer;
+
+  Debouncer({this.milliseconds});
+  run(VoidCallback action) {
+    if (null != _timer) {
+      _timer!.cancel();
+    }
+    _timer = Timer(Duration(microseconds: milliseconds!), action);
+  }
 }
 
 class _ListPageState extends State<ListPage>
     with SingleTickerProviderStateMixin {
   String appname;
+  final debouncer = Debouncer(milliseconds: 5000);
   // Data data;
   _ListPageState(this.appname); // List<MusicModel> _list1;
   final sqllitedb dbHelper = new sqllitedb();
+  final languageSelector selectlang = new languageSelector();
   final common_methods commonmethod = new common_methods();
-  List<MusicData> _list;
-  int _playId;
-  int _songId;
-  int _favstate;
-  bool addRunner = true;
+  List<MusicData>? _list;
+  List<MusicData>? _mainlist;
+
+  int? _playId;
+  int? _songId;
+  int? _favstate;
+  bool? addRunner = true;
+  bool? listbuilder = false;
+  bool? fabsearch = false;
+  AssetsAudioPlayer? get _assetsAudioPlayer =>
+      AssetsAudioPlayer.withId("music");
+  final List<StreamSubscription>? _subscriptions = [];
   // AudioPlayerState playerState;
   var countdown;
   @override
   void initState() {
     // data = inuseAudioinfo;
+    currentappname = "HOME";
 
-    if (inuseAudioinfo == null) {
+    if (inuseAudioinfo == null || inuseAudioinfo!.list == null) {
       inuseAudioinfo = new Data();
-      inuseAudioinfo.audioPlayer = AssetsAudioPlayer();
-      inuseAudioinfo.isPause = false;
-      inuseAudioinfo.isRepeat = false;
-      inuseAudioinfo.isShuffle = false;
-      inuseAudioinfo.isPlaying = false;
-      inuseAudioinfo.appname = appname;
+      inuseAudioinfo!.audioPlayer = AssetsAudioPlayer();
+      inuseAudioinfo!.isPause = false;
+      inuseAudioinfo!.isRepeat = false;
+      inuseAudioinfo!.isShuffle = false;
+      inuseAudioinfo!.isPlaying = false;
+      inuseAudioinfo!.appname = appname;
       _playId = 0;
       if (kIsWeb) {
+        listbuilder = true;
         downloadSongList(appname);
       } else {
+        listbuilder = true;
         this.downloadSongListDB(appname);
       }
-    } else if (appname == inuseAudioinfo.appname) {
-      _list = inuseAudioinfo.list;
-      _playId = inuseAudioinfo.playId;
-      _songId = inuseAudioinfo.songId;
+    } else if (appname == inuseAudioinfo!.appname) {
+      _list = inuseAudioinfo!.list;
+      _mainlist = _list;
+      _playId = inuseAudioinfo!.playId;
+      _songId = inuseAudioinfo!.songId;
     } else {
       if (kIsWeb) {
+        listbuilder = true;
         downloadSongList(appname);
       } else {
+        listbuilder = true;
         this.downloadSongListDB(appname);
       }
-      _playId = inuseAudioinfo.playId;
-      _songId = inuseAudioinfo.songId;
+      _playId = inuseAudioinfo!.playId;
+      _songId = inuseAudioinfo!.songId;
     }
     audioListner();
     super.initState();
   }
 
+  // stream() {
+  //   _positionSubscription =
+  //       inuseAudioinfo.audioPlayer.currentPosition.listen((p) {
+  //     setState(() {
+  //       inuseAudioinfo.position = p;
+  //       print("I am At 5 sec");
+  //     });
+  //   });
+  // }
+
   audioListner() {
-    
-    inuseAudioinfo.audioPlayer.currentPosition.listen((event) {
-    
-      inuseAudioinfo.position = event;
-      print("Position Value from event=" + inuseAudioinfo.position.inSeconds.toString());
-      inuseAudioinfo.position =
-          inuseAudioinfo.audioPlayer.currentPosition.value;
-      print("Position Value=" + inuseAudioinfo.position.inSeconds.toString());
+    _subscriptions!
+        .add(inuseAudioinfo!.audioPlayer!.playlistAudioFinished.listen((data) {
+      print("playlistAudioFinished : $data");
+      if (inuseAudioinfo!.isPlaying!) {
+        inuseAudioinfo!.audioPlayer!.stop();
+        playnextSong();
+        // mySong();
+      }
+    }));
+    _subscriptions!
+        .add(inuseAudioinfo!.audioPlayer!.audioSessionId.listen((sessionId) {
+      print("audioSessionId : $sessionId");
+    }));
+    //_subscriptions.add(_assetsAudioPlayer.current.listen((data) {
+    //  print("current : $data");
+    //}));
+    //_subscriptions.add(_assetsAudioPlayer.onReadyToPlay.listen((audio) {
+    //  print("onReadyToPlay : $audio");
+    //}));
+    //_subscriptions.add(_assetsAudioPlayer.isBuffering.listen((isBuffering) {
+    //  print("isBuffering : $isBuffering");
+    //}));
+    //_subscriptions.add(_assetsAudioPlayer.playerState.listen((playerState) {
+    //  print("playerState : $playerState");
+    //}));
+    //_subscriptions.add(_assetsAudioPlayer.isPlaying.listen((isplaying) {
+    //  print("isplaying : $isplaying");
+    //}));
+    _subscriptions!
+        .add(AssetsAudioPlayer.addNotificationOpenAction((notification) {
+      print("Inside audio notification");
+      return false;
+    }));
+    inuseAudioinfo!.audioPlayer!.currentPosition.listen((event) {
+      setState(() {
+        if (inuseAudioinfo!.audioPlayer!.current.hasValue) {
+          if (inuseAudioinfo!.audioPlayer!.current.value != null) {
+            inuseAudioinfo!.position =
+                inuseAudioinfo!.audioPlayer!.current.value!.audio.duration;
+            inuseAudioinfo!.duration = event;
+            // print("Position Value from event Duration=" +
+            //     inuseAudioinfo.duration.inSeconds.toString() +
+            //     " Position=" +
+            //     inuseAudioinfo.position.inSeconds.toString());
+          }
+        }
+      });
     });
-
-
-    // inuseAudioinfo.audioPlayer.onAudioPositionChanged
-    //     .listen((Duration _duration) {
-    //   setState(() {
-    //     inuseAudioinfo.duration = _duration;
-    //     print(inuseAudioinfo.duration);
-    //   });
-    // });
-    // inuseAudioinfo.audioPlayer.onDurationChanged.listen((Duration _duration) {
-    //   setState(() {
-    //     inuseAudioinfo.position = _duration;
-    //     print(inuseAudioinfo.position);
-    //   });
-    // });
-    // inuseAudioinfo.audioPlayer.onPlayerStateChanged
-    //     .listen((AudioPlayerState s) {
-    //   print('Current player state: $s');
-    //   setState(() {
-    //     playerState = s;
-    //     if (playerState == AudioPlayerState.STOPPED) {
-    //       inuseAudioinfo.duration = new Duration(seconds: 0);
-    //       inuseAudioinfo.position = new Duration(seconds: 0);
-    //     }
-    //   });
-    // });
-
-    // inuseAudioinfo.audioPlayer.onPlayerCompletion.listen((event) {
-    //   setState(() {
-    //     if ((inuseAudioinfo.duration.inSeconds >=
-    //             inuseAudioinfo.position.inSeconds) &&
-    //         inuseAudioinfo.position.inSeconds > 0) {
-    //       playnextSong();
-    //     }
-    //   });
+    // inuseAudioinfo.audioPlayer.playlistAudioFinished.listen((Playing playing) {
+    //   if (inuseAudioinfo.isPlaying) {
+    //     inuseAudioinfo.audioPlayer.stop();
+    //     playnextSong();
+    //     // mySong();
+    //   } else {
+    //     playnextSong();
+    //   }
     // });
   }
 
   playnextSong() {
-    inuseAudioinfo.position = new Duration();
-    print("Song Duration" + (inuseAudioinfo.duration.inSeconds).toString());
-    print("Song Position" + (inuseAudioinfo.position.inSeconds).toString());
-    inuseAudioinfo.isPlaying = false;
-    if (inuseAudioinfo.isRepeat) {
-      inuseAudioinfo.songId = _songId;
+    // mySong() {
+    inuseAudioinfo!.position = new Duration();
+    print("Song Duration" + (inuseAudioinfo!.duration!.inSeconds).toString());
+    print("Song Position" + (inuseAudioinfo!.position!.inSeconds).toString());
+    inuseAudioinfo!.isPlaying = false;
+    if (inuseAudioinfo!.isRepeat!) {
+      // inuseAudioinfo.songId = _songId;
     } else {
-      if (inuseAudioinfo.isShuffle) {
+      if (inuseAudioinfo!.isShuffle!) {
         var element =
-            inuseAudioinfo.list[random.nextInt(inuseAudioinfo.list.length)];
-        inuseAudioinfo.songId = element.id;
+            inuseAudioinfo!.list![random.nextInt(inuseAudioinfo!.list!.length)];
+        inuseAudioinfo!.songId = element.id;
       } else {
-        if (inuseAudioinfo.songId < inuseAudioinfo.list.length - 1) {
-          inuseAudioinfo.songId = inuseAudioinfo.songId + 1;
-        } else if (inuseAudioinfo.songId == inuseAudioinfo.list.length - 1) {
-          inuseAudioinfo.songId = 0;
+        if (inuseAudioinfo!.songId! < inuseAudioinfo!.list!.length - 1) {
+          inuseAudioinfo!.songId = (inuseAudioinfo!.songId! + 1);
+        } else if (inuseAudioinfo!.songId == inuseAudioinfo!.list!.length - 1) {
+          inuseAudioinfo!.songId = 0;
         } else {
-          inuseAudioinfo.songId = inuseAudioinfo.songId;
+          inuseAudioinfo!.songId = inuseAudioinfo!.songId;
         }
       }
     }
-    _player(inuseAudioinfo.songId);
+    _player(inuseAudioinfo!.songId!);
   }
 
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
+      // ignore: missing_return
       onWillPop: () {
-        inuseAudioinfo = buildData();
+        onbackPress();
+        // inuseAudioinfo = buildData();
+        throw "Failed to load previous page onbackpress";
       },
       child: Scaffold(
-        appBar: GradientAppBar(
-          elevation: 0,
-          backgroundColorStart: Colors.red,
-          backgroundColorEnd: Colors.purple,
-          // drawer: new Drawer(child: CustomeBuildDrawer()),
-          centerTitle: true,
-          leading: IconButton(
-            icon: Icon(Icons.arrow_back),
-            onPressed: () {
-              if (inuseAudioinfo.isPlaying == true ||
-                  inuseAudioinfo.isPause == true) {
-                if (inuseAudioinfo == null) {
-                  inuseAudioinfo = buildData();
-                }
-              } else {
-                inuseAudioinfo = null;
-              }
-
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (_) => HomePage(
-                    appname: appname,
-                    // data: ndata,
-                  ),
-                ),
-              );
-            },
-          ),
-          title: Text(
-            appname,
-            style: TextStyle(color: AppColors.white),
-          ),
-        ),
+        appBar: commonmethod.buildAppBar(context, appname),
+        drawer: new Drawer(child: CustomeBuildDrawer()),
+        floatingActionButton: buildMusicFAB(),
+        floatingActionButtonLocation: FloatingActionButtonLocation.endTop,
         backgroundColor: AppColors.mainColor,
         body: Stack(
           children: <Widget>[
             Column(
               children: <Widget>[
                 // addRunner ?
+                if (fabsearch == true) buildTextSearch1(context),
                 Padding(
                   padding: const EdgeInsets.all(8.0),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.end,
                     children: <Widget>[
-                      commonmethod.buildImageBox(
-                          100.0, 100.0, 10.0, commonmethod.moduleImage(appname))
+                      commonmethod.buildImageBox(100.0, 100.0, 10.0,
+                          commonmethod.moduleImage(appname)),
+                      // Text("      "),
+                      // IconButton(
+                      //     icon: Icon(
+                      //       Icons.star_half,
+                      //       color: AppColors.styleColor,
+                      //       size: 50,
+                      //     ),
+                      //     onPressed: () {})
                     ],
                   ),
                 ),
-                buildListView(),
+                if (_list == null)
+                  CircularProgressIndicator()
+                else
+                  buildListView(),
+                if (_list != null) buildMusicBar(context),
+
                 // buildPlayerMenu1(),
-                buildMusicBar(context)
               ],
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  buildList() {}
+
+  Padding buildTextSearch1(context) {
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: 10.0),
+      child: Material(
+        elevation: 5.0,
+        color: AppColors.mainColor,
+        borderRadius: BorderRadius.all(
+          Radius.circular(10.0),
+        ),
+        child: TextField(
+          style: TextStyle(fontSize: 15.0, height: 2.0, color: Colors.black),
+          autofocus: true,
+          decoration: InputDecoration(
+            contentPadding: EdgeInsets.all(10.0),
+            hintText: selectlang.getAlert(
+                "Enter Song/Bhajan name to search!!", lang_selection!),
+          ),
+          onChanged: (text) {
+            // print(_mainlist.where((songrow) => (songrow.title
+            //         .toLowerCase()
+            //         .contains(text.toLowerCase()) ||
+            //     songrow.hindiName.toLowerCase().contains(text.toLowerCase()))));
+            debouncer.run(() {
+              setState(() {
+                // List<MusicData> templist;
+                _list = _mainlist!
+                    .where((songrow) => (songrow.title
+                            .toLowerCase()
+                            .contains(text.toLowerCase()) ||
+                        songrow.hindiName
+                            .toLowerCase()
+                            .contains(text.toLowerCase())))
+                    .toList();
+                // if (templist.length > 0) {
+                //   _list = templist;
+                // } else {
+                //   print("No Matching record found!!");
+                // }
+              });
+            });
+            // appBloc.addToLocation.add(text);
+          },
+          // style: dropDownMenuItemStyle,
+          cursorColor: AppColors.mainColor,
+          // decoration: InputDecoration(
+          //   contentPadding:
+          //       EdgeInsets.symmetric(horizontal: 32.0, vertical: 14.0),
+          //   suffixIcon: Material(
+          //     elevation: 2.0,
+          //     borderRadius: BorderRadius.all(
+          //       Radius.circular(30.0),
+          //     ),
+          //     child: InkWell(
+          //       onTap: () {},
+          //       child: Icon(
+          //         Icons.search,
+          //         color: Colors.black,
+          //       ),
+          //     ),
+          //   ),
+          //   border: InputBorder.none,
+          // ),
+        ),
+      ),
+    );
+  }
+
+  Padding buidTextSearch(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: Container(
+        height: 30,
+        decoration: BoxDecoration(
+            color: AppColors.lightBlue,
+            // borderRadius: BorderRadius.all(
+            //   Radius.circular(16),
+            // ),
+            shape: BoxShape.rectangle,
+            border: Border(
+              top: BorderSide(color: AppColors.white),
+            ),
+            gradient: LinearGradient(
+                colors: <Color>[AppColors.white, Colors.blue[50]!])),
+        child: TextField(
+            style: TextStyle(fontSize: 40.0, height: 2.0, color: Colors.black)),
       ),
     );
   }
@@ -245,9 +380,9 @@ class _ListPageState extends State<ListPage>
                       child: commonmethod.buildImageBox(
                           70.0,
                           70.0,
-                          15,
+                          5,
                           commonmethod.moduleImage(inuseAudioinfo != null
-                              ? inuseAudioinfo.appname
+                              ? inuseAudioinfo!.appname
                               : appname))),
                 )
               ],
@@ -256,14 +391,112 @@ class _ListPageState extends State<ListPage>
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                Container(
-                  width: MediaQuery.of(context).size.width * 0.7,
-                  // child: Expanded(child: slider()),
-                  child: kIsWeb ? null : slider(),
+                Row(
+                  // crossAxisAlignment: CrossAxisAlignment.stretch,
+                  mainAxisSize: MainAxisSize.max,
+                  // mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: <Widget>[
+                    Text(
+                        (inuseAudioinfo == null ||
+                                inuseAudioinfo!.title == null)
+                            ? "00.00"
+                            : _printDuration(inuseAudioinfo!.duration!),
+                        // softWrap: true,
+                        style: TextStyle(
+                          // color: AppColors.black.withAlpha(90),
+                          color: AppColors.black.withAlpha(150),
+                          fontSize: 14,
+                        )),
+                    slider(),
+                    // Container(
+                    //   width: MediaQuery.of(context).size.width * 0.5,
+                    //   // child: Expanded(child: slider()),
+                    //   // child: kIsWeb ? null : slider(),
+                    //   child: slider(),
+                    // ),
+                    Text(
+                        (inuseAudioinfo == null ||
+                                inuseAudioinfo!.title == null)
+                            ? "00.00"
+                            : _printDuration(inuseAudioinfo!.position!),
+                        // softWrap: true,
+                        style: TextStyle(
+                          // color: AppColors.black.withAlpha(90),
+                          color: AppColors.black.withAlpha(150),
+                          fontSize: 14,
+                        )),
+                  ],
                 ),
+                // Center(
+                //   child: Container(
+                //     decoration: BoxDecoration(
+                //         border: Border(
+                //       top: BorderSide(color: Colors.red[300]),
+                //       // bottom: BorderSide(color: AppColors.white)
+                //     )),
+
+                //     child: Wrap(
+                //       alignment: WrapAlignment.center,
+                //       // spacing: kIsWeb
+                //       //     ? MediaQuery.of(context).size.width * 0.1
+                //       //     : 1, // space between two icons
+                //       children: <Widget>[
+                //         Text(
+                //             (inuseAudioinfo == null ||
+                //                     inuseAudioinfo.title == null)
+                //                 ? "00.00"
+                //                 : _printDuration(inuseAudioinfo.duration),
+                //             // softWrap: true,
+                //             style: TextStyle(
+                //               // color: AppColors.black.withAlpha(90),
+                //               color: AppColors.black.withAlpha(150),
+                //               fontSize: 14,
+                //             )),
+                //         slider(),
+                //         // Container(
+                //         //   width: MediaQuery.of(context).size.width * 0.5,
+                //         //   // child: Expanded(child: slider()),
+                //         //   // child: kIsWeb ? null : slider(),
+                //         //   child: slider(),
+                //         // ),
+                //         Text(
+                //             (inuseAudioinfo == null ||
+                //                     inuseAudioinfo.title == null)
+                //                 ? "00.00"
+                //                 : _printDuration(inuseAudioinfo.position),
+                //             // softWrap: true,
+                //             style: TextStyle(
+                //               // color: AppColors.black.withAlpha(90),
+                //               color: AppColors.black.withAlpha(150),
+                //               fontSize: 14,
+                //             )),
+                //       ],
+                //     ),
+                //   ),
+                // ),
+                // Container(
+                //   width: MediaQuery.of(context).size.width * 0.7,
+                //   // child: Expanded(child: slider()),
+                //   // child: kIsWeb ? null : slider(),
+                //   child: slider(),
+                // ),
+                // Container(child: inuseAudioinfo.audioPlayer
+                //     .builderCurrentPosition(builder: (context, duration) {
+                //   print(duration.toString());
+
+                //   // setState(() {
+                //   inuseAudioinfo.duration = duration;
+                //   // });
+                //   return Spacer();
+                // })),
                 Center(
                   child: Marquee(
-                    child: Text(inuseAudioinfo.title ?? appname,
+                    child: Text(
+                        ((inuseAudioinfo == null ||
+                                    inuseAudioinfo!.title == null)
+                                ? selectlang.getAlbum(appname, lang_selection!)
+                                : inuseAudioinfo!.title)! +
+                            "",
                         softWrap: true,
                         style: TextStyle(
                           // color: AppColors.black.withAlpha(90),
@@ -276,7 +509,7 @@ class _ListPageState extends State<ListPage>
                   child: Container(
                     decoration: BoxDecoration(
                         border: Border(
-                      top: BorderSide(color: Colors.red[300]),
+                      top: BorderSide(color: Colors.red[300]!),
                       // bottom: BorderSide(color: AppColors.white)
                     )),
                     child: Wrap(
@@ -286,66 +519,54 @@ class _ListPageState extends State<ListPage>
                       children: <Widget>[
                         IconButton(
                           icon: Icon(
-                            inuseAudioinfo.isRepeat
-                                ? Icons.repeat_one
-                                : Icons.repeat,
-                            color: inuseAudioinfo.isRepeat
-                                ? AppColors.brown
-                                : AppColors.black,
-                          ),
+                              inuseAudioinfo != null
+                                  ? inuseAudioinfo!.isRepeat!
+                                      ? Icons.repeat_one
+                                      : Icons.repeat
+                                  : Icons.repeat,
+                              color: inuseAudioinfo != null
+                                  ? inuseAudioinfo!.isRepeat!
+                                      ? AppColors.brown
+                                      : AppColors.darkBrown
+                                  : AppColors.darkBrown),
                           onPressed: () {
                             print("User clicked Repeat one.");
-                            if (inuseAudioinfo.playId != null) {
-                              Duration seekdur = new Duration(seconds: 10);
-                              if (inuseAudioinfo.isRepeat) {
+                            if (inuseAudioinfo!.playId != null) {
+                              if (inuseAudioinfo!.isRepeat!) {
                                 setState(() {
-                                  inuseAudioinfo.isRepeat = false;
+                                  inuseAudioinfo!.isRepeat = false;
                                 });
                               } else {
                                 setState(() {
-                                  inuseAudioinfo.isRepeat = true;
+                                  inuseAudioinfo!.isRepeat = true;
                                 });
                               }
                             } else {
-                              commonmethod.displayDialog(
-                                context,
-                                "",
-                                "Please select song to play.",
-                                Icon(
-                                  Icons.library_music,
-                                  size: 100,
-                                  color: AppColors.red200,
-                                ),
-                              );
+                              selectMusicNotification();
                             }
                           },
                         ),
                         IconButton(
                             icon: Icon(
-                              inuseAudioinfo.isPlaying
-                                  ? Icons.pause
+                              inuseAudioinfo != null
+                                  ? inuseAudioinfo!.isPlaying!
+                                      ? Icons.pause
+                                      : Icons.play_arrow
                                   : Icons.play_arrow,
-                              color: AppColors.black,
+                              color: AppColors.darkBrown,
                             ),
                             onPressed: () {
-                              _player(_songId);
+                              _player(_songId!);
                             }),
                         IconButton(
                             icon: Icon(
                               Icons.stop,
-                              color: AppColors.black,
+                              color: AppColors.darkBrown,
                             ),
                             onPressed: () {
-                              if (inuseAudioinfo.isPlaying) {
+                              if (inuseAudioinfo!.isPlaying!) {
                                 // _inuseAudioinfo.audioPlayer.stop();
-                                inuseAudioinfo.duration =
-                                    new Duration(seconds: 0);
-                                inuseAudioinfo.audioPlayer.stop();
-                                setState(() {
-                                  inuseAudioinfo.isPlaying = false;
-                                  // position = new Duration(seconds: 0);
-                                  // _duration = new Duration();
-                                });
+                                stop();
                               }
 
                               // isPlaying = false;
@@ -353,18 +574,20 @@ class _ListPageState extends State<ListPage>
                         IconButton(
                             icon: Icon(
                               Icons.shuffle,
-                              color: inuseAudioinfo.isShuffle
-                                  ? AppColors.brown
-                                  : AppColors.black,
+                              color: inuseAudioinfo != null
+                                  ? inuseAudioinfo!.isShuffle!
+                                      ? AppColors.brown
+                                      : AppColors.darkBrown
+                                  : AppColors.darkBrown,
                             ),
                             onPressed: () {
-                              if (inuseAudioinfo.isShuffle) {
+                              if (inuseAudioinfo!.isShuffle!) {
                                 setState(() {
-                                  inuseAudioinfo.isShuffle = false;
+                                  inuseAudioinfo!.isShuffle = false;
                                 });
                               } else {
                                 setState(() {
-                                  inuseAudioinfo.isShuffle = true;
+                                  inuseAudioinfo!.isShuffle = true;
                                 });
                               }
                             }),
@@ -411,86 +634,131 @@ class _ListPageState extends State<ListPage>
 
   Expanded buildListView() {
     return Expanded(
-      //This is added so we can see overlay else this will be over button
-      child: ListView.builder(
-        physics:
-            BouncingScrollPhysics(), //This line removes the dark flash when you are at the begining or end of list menu. Just uncomment for
-        // itemCount: _list.length,
-        itemCount: _list == null ? 0 : _list.length,
-        padding: EdgeInsets.all(12),
-        itemBuilder: (context, index) {
-          _favstate = _list[index].isfave;
-          if (inuseAudioinfo != null) {
-            if (inuseAudioinfo.songId != null &&
-                inuseAudioinfo.appname == appname) {
-              child:
-              buildAnimatedContainer(inuseAudioinfo.songId);
-            }
-          }
-          return GestureDetector(
-            onTap: () {
-              if (inuseAudioinfo.appname != appname) {
-                inuseAudioinfo.list = _list;
-                inuseAudioinfo.songId = index;
-                inuseAudioinfo.appname = appname;
-              } else {
-                inuseAudioinfo.songId = index;
-              }
+        //This is added so we can see overlay else this will be over button
+        child: _list!.length > 0
+            ? ListView.builder(
+                physics:
+                    BouncingScrollPhysics(), //This line removes the dark flash when you are at the begining or end of list menu. Just uncomment for
+                // itemCount: _list.length,
+                itemCount: _list!.length,
+                padding: EdgeInsets.all(12),
+                itemBuilder: (context, index) {
+                  _favstate = _list![index].isfave;
+                  if (inuseAudioinfo != null) {
+                    if (inuseAudioinfo!.songId != null &&
+                        inuseAudioinfo!.appname == appname) {
+                      if (_list![index].id == inuseAudioinfo!.songId) {
+                        child:
+                        buildAnimatedContainer(inuseAudioinfo!.songId!);
+                      } else {
+                        child:
+                        buildAnimatedContainer(index);
+                      }
+                      // child:
+                      // buildAnimatedContainer(inuseAudioinfo.songId);
+                    }
+                  }
+                  return GestureDetector(
+                    onTap: () {
+                      if (inuseAudioinfo!.appname != appname) {
+                        inuseAudioinfo!.list = _list;
+                        inuseAudioinfo!.songId = index;
+                        inuseAudioinfo!.appname = appname;
+                      } else {
+                        inuseAudioinfo!.songId = index;
+                      }
 
-              _songId = index;
-              if (_list[index].songURL == null ||
-                  _list[index].songURL == "" ||
-                  (_list[index].songURL).isEmpty) {
-                if (_list[index].songURL != "") {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (_) => Pdfview(
-                        appname: appname,
-                        pdfpage: _list[index].pdfpage,
-                      ),
-                    ),
+                      _songId = index;
+                      if (_list![index].songURL == null ||
+                          _list![index].songURL == "" ||
+                          (_list![index].songURL).isEmpty) {
+                        if (_list![index].songURL != "") {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) => Pdfview(
+                                appname: appname,
+                                pdfpage: _list![index].pdfpage,
+                              ),
+                            ),
+                          );
+                        } else {
+                          Toast.show(
+                              selectlang.getAlert("Unable to play this song!!",
+                                  lang_selection!),
+                              duration: 1,
+                              gravity: 0);
+                          // commonmethod.displayDialog(
+                          //   context,
+                          //   "",
+                          //   selectlang.getAlert(
+                          //       "Unable to play this song!!", lang_selection),
+                          //   Icon(
+                          //     Icons.library_music,
+                          //     size: 100,
+                          //     color: AppColors.white54,
+                          //   ),
+                          // );
+                        }
+                      } else {
+                        _player(index);
+                      }
+                    },
+                    child: buildAnimatedContainer(index),
                   );
-                } else {
-                  commonmethod.displayDialog(
-                    context,
-                    "",
-                    "Unable to play this song.",
-                    Icon(
-                      Icons.library_music,
-                      size: 100,
-                      color: AppColors.white54,
-                    ),
-                  );
-                }
-              } else {
-                _player(index);
-              }
-            },
-            child: buildAnimatedContainer(index),
-          );
-        },
+                },
+              )
+            : Center(
+                child: Text(selectlang.getAlert(
+                    "No Song/Bhajan found!!", lang_selection!)),
+              ));
+  }
+
+  void onbackPress() {
+    if (inuseAudioinfo!.isPlaying == true || inuseAudioinfo!.isPause == true) {
+      if (inuseAudioinfo == null) {
+        inuseAudioinfo = buildData();
+      }
+    } else {
+      inuseAudioinfo = null;
+    }
+
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => HomePage(
+          appname: appname,
+          // data: ndata,
+        ),
       ),
     );
   }
 
   Data buildData() {
+    String app;
+    List<MusicData> data;
+    if (inuseAudioinfo!.appname != appname) {
+      app = inuseAudioinfo!.appname!;
+      data = inuseAudioinfo!.list!;
+    } else {
+      app = appname;
+      data = _list!;
+    }
     return Data(
-        playId: inuseAudioinfo.playId,
-        songId: inuseAudioinfo.songId,
+        playId: inuseAudioinfo!.playId,
+        songId: inuseAudioinfo!.songId,
         // inuseAudioinfo.audioPlayer: _inuseAudioinfo.audioPlayer,
-        audioPlayer: inuseAudioinfo.audioPlayer,
-        isPause: inuseAudioinfo.isPause,
-        isPlaying: inuseAudioinfo.isPlaying,
-        isRepeat: inuseAudioinfo.isRepeat,
-        isShuffle: inuseAudioinfo.isShuffle,
+        audioPlayer: inuseAudioinfo!.audioPlayer,
+        isPause: inuseAudioinfo!.isPause,
+        isPlaying: inuseAudioinfo!.isPlaying,
+        isRepeat: inuseAudioinfo!.isRepeat,
+        isShuffle: inuseAudioinfo!.isShuffle,
         // duration: _duration,
         // position: _position,
-        duration: inuseAudioinfo.duration,
-        position: inuseAudioinfo.position,
-        title: inuseAudioinfo.title,
+        duration: inuseAudioinfo!.duration,
+        position: inuseAudioinfo!.position,
+        title: inuseAudioinfo!.title,
         albumImage: commonmethod.moduleImage(appname),
-        list: _list,
-        appname: appname);
+        list: data,
+        appname: app);
   }
 
   AnimatedContainer buildAnimatedContainer(int index) {
@@ -498,9 +766,11 @@ class _ListPageState extends State<ListPage>
       duration: Duration(milliseconds: 500),
       //This below code will change the color of selected area or song being played.
       decoration: BoxDecoration(
-        color: _list[index].id == inuseAudioinfo.playId &&
-                inuseAudioinfo.appname == appname
-            ? AppColors.activeColor
+        color: inuseAudioinfo != null
+            ? _list![index].id == inuseAudioinfo!.playId &&
+                    inuseAudioinfo!.appname == appname
+                ? AppColors.activeColor
+                : AppColors.mainColor
             : AppColors.mainColor,
         borderRadius: BorderRadius.all(
           Radius.circular(16),
@@ -525,7 +795,7 @@ class _ListPageState extends State<ListPage>
                   width: MediaQuery.of(context).size.width * 0.5,
                   child: Marquee(
                     child: Text(
-                      _list[index].title,
+                      getSongName(_list![index]),
                       softWrap: true,
                       style: TextStyle(
                         color: AppColors.styleColor,
@@ -535,7 +805,7 @@ class _ListPageState extends State<ListPage>
                   ),
                 ),
                 Text(
-                  _list[index].album,
+                  selectlang.getAlbum(_list![index].album, lang_selection!),
                   style: TextStyle(
                     color: AppColors.styleColor.withAlpha(90),
                     fontSize: 16,
@@ -544,7 +814,11 @@ class _ListPageState extends State<ListPage>
               ],
             ),
             new Spacer(),
-            if (_list[index].pdfpage != 0)
+
+            if (!kIsWeb &&
+                (io.File(homefolder.path + "/" + _list![index].pdffile)
+                        .existsSync() ==
+                    true))
               IconButton(
                   alignment: Alignment.centerLeft,
                   icon: Icon(
@@ -554,47 +828,52 @@ class _ListPageState extends State<ListPage>
                   color: AppColors.red200,
                   // alignment: Alignment.centerRight,
                   onPressed: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (_) => Pdfview(
-                          appname: appname,
-                          pdfpage: _list[index].pdfpage,
+                    if (_list![index].pdffile != null ||
+                        _list![index].pdffile != "") {
+                      buildData();
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => Pdfview(
+                            appname: appname,
+                            pdfpage: _list![index].pdfpage,
+                            filepath:
+                                homefolder.path + "/" + _list![index].pdffile,
+                          ),
                         ),
-                      ),
-                    );
-                    setState(() {});
+                      );
+                      setState(() {});
+                    }
                   }), // new Spacer(),
             if (!kIsWeb)
               IconButton(
-                  icon: Icon(
-                      _favstate == 1 ? Icons.favorite : Icons.favorite_border),
+                  icon: Icon(_favstate == 1 ? Icons.star : Icons.star_border),
                   color: AppColors.red200,
                   onPressed: () {
                     setState(() {
-                      if (_list[index].isfave == 1) {
+                      if (_list![index].isfave == 1) {
                         _favstate = 0;
-                        _list[index].isfave = 0;
-                        dbHelper.updateFavorite(_list[index].id, 0);
+                        _list![index].isfave = 0;
+                        dbHelper.updateFavorite(_list![index].id, 0);
                         commonmethod.displayDialog(
                           context,
                           "",
                           "Song removed from favorite",
                           Icon(
-                            Icons.favorite_border,
+                            Icons.star_border,
                             size: 100,
                             color: AppColors.red200,
                           ),
                         );
                       } else {
                         _favstate = 1;
-                        _list[index].isfave = 1;
-                        dbHelper.updateFavorite(_list[index].id, 1);
+                        _list![index].isfave = 1;
+                        dbHelper.updateFavorite(_list![index].id, 1);
                         commonmethod.displayDialog(
                           context,
                           "",
                           "Song added to favorite",
                           Icon(
-                            Icons.favorite,
+                            Icons.star,
                             size: 100,
                             color: AppColors.red200,
                           ),
@@ -605,10 +884,10 @@ class _ListPageState extends State<ListPage>
             if (appname == 'Chalisa')
               IconButton(
                   icon: Icon(
-                    inuseAudioinfo.isPlaying &&
-                            _list[index].id == _playId &&
+                    inuseAudioinfo!.isPlaying! &&
+                            _list![index].id == _playId &&
                             index == _songId &&
-                            inuseAudioinfo.appname == appname
+                            inuseAudioinfo!.appname == appname
                         ? Icons.pause
                         : Icons.play_arrow,
                     color: AppColors.styleColor,
@@ -617,7 +896,7 @@ class _ListPageState extends State<ListPage>
                     if (_songId == null) {
                       _player(index);
                     } else if (index == _songId) {
-                      _player(_songId);
+                      _player(_songId!);
                     } else {
                       _player(index);
                     }
@@ -654,22 +933,22 @@ class _ListPageState extends State<ListPage>
           // activeColor: Colors.red.withAlpha(64),
           // inactiveColor: Colors.red[200],
           label: (getTimeString(
-              (inuseAudioinfo == null || inuseAudioinfo.duration == null)
+              (inuseAudioinfo == null || inuseAudioinfo!.duration == null)
                   ? 0
-                  : inuseAudioinfo.duration.inSeconds)),
+                  : inuseAudioinfo!.duration!.inSeconds)),
           min: 0.0,
           divisions: 10,
-          max: ((inuseAudioinfo == null || inuseAudioinfo.position == null)
+          max: ((inuseAudioinfo == null || inuseAudioinfo!.position == null)
                   ? 0
-                  : inuseAudioinfo.position.inSeconds)
+                  : inuseAudioinfo!.position!.inSeconds)
               .toDouble(),
           value: (getSleepkerPosition(
-                  (inuseAudioinfo == null || inuseAudioinfo.position == null)
+                  (inuseAudioinfo == null || inuseAudioinfo!.position == null)
                       ? 0
-                      : inuseAudioinfo.position.inSeconds,
-                  (inuseAudioinfo == null || inuseAudioinfo.duration == null)
+                      : inuseAudioinfo!.position!.inSeconds,
+                  (inuseAudioinfo == null || inuseAudioinfo!.duration == null)
                       ? 0
-                      : inuseAudioinfo.duration.inSeconds))
+                      : inuseAudioinfo!.duration!.inSeconds))
               .toDouble(),
           onChangeStart: (double value) {
             print('Start value is ' + value.toString());
@@ -679,7 +958,7 @@ class _ListPageState extends State<ListPage>
           },
           onChanged: (double value) {
             setState(() {
-              if (value == inuseAudioinfo.position.inSeconds) {
+              if (value == inuseAudioinfo!.position!.inSeconds) {
               } else {
                 seekToSecond(value.toInt());
                 value = value;
@@ -695,7 +974,7 @@ class _ListPageState extends State<ListPage>
     String h = parts[0].padLeft(2, '0');
     String m = parts[1].padLeft(2, '0');
     String s = (parts[2].substring(0, 2)).padLeft(2, '0');
-    return '${h}:${m}:${s}';
+    return '$h:$m:$s';
   }
 
   Widget slider2() {
@@ -754,17 +1033,17 @@ class _ListPageState extends State<ListPage>
             // inactiveColor: AppColors.red200,
             // label: inuseAudioinfo.duration.inSeconds.toString(),
             min: 0.0,
-            max: ((inuseAudioinfo == null || inuseAudioinfo.position == null)
+            max: ((inuseAudioinfo == null || inuseAudioinfo!.position == null)
                     ? 1
-                    : inuseAudioinfo.position.inSeconds)
+                    : inuseAudioinfo!.position!.inSeconds)
                 .toDouble(),
             value: (getSleepkerPosition(
-                    (inuseAudioinfo == null || inuseAudioinfo.position == null)
+                    (inuseAudioinfo == null || inuseAudioinfo!.position == null)
                         ? 0
-                        : inuseAudioinfo.position.inSeconds,
-                    (inuseAudioinfo == null || inuseAudioinfo.duration == null)
+                        : inuseAudioinfo!.position!.inSeconds,
+                    (inuseAudioinfo == null || inuseAudioinfo!.duration == null)
                         ? 0
-                        : inuseAudioinfo.duration.inSeconds))
+                        : inuseAudioinfo!.duration!.inSeconds))
                 .toDouble(),
             divisions: 9,
             onChangeStart: (double value) {
@@ -775,7 +1054,7 @@ class _ListPageState extends State<ListPage>
             },
             onChanged: (double value) {
               setState(() {
-                if (value == inuseAudioinfo.position.inSeconds) {
+                if (value == inuseAudioinfo!.position!.inSeconds) {
                 } else {
                   seekToSecond(value.toInt());
                   value = value;
@@ -790,19 +1069,19 @@ class _ListPageState extends State<ListPage>
         inactiveColor: AppColors.red200,
         // label: inuseAudioinfo.duration.inSeconds.toString(),
         min: 0.0,
-        max: ((inuseAudioinfo == null || inuseAudioinfo.position == null)
+        max: ((inuseAudioinfo == null || inuseAudioinfo!.position == null)
                 ? 0
-                : inuseAudioinfo.position.inSeconds)
+                : inuseAudioinfo!.position!.inSeconds)
             .toDouble(),
         value: (getSleepkerPosition(
-                (inuseAudioinfo == null || inuseAudioinfo.position == null)
+                (inuseAudioinfo == null || inuseAudioinfo!.position == null)
                     ? 0
-                    : inuseAudioinfo.position.inSeconds,
-                (inuseAudioinfo == null || inuseAudioinfo.duration == null)
+                    : inuseAudioinfo!.position!.inSeconds,
+                (inuseAudioinfo == null || inuseAudioinfo!.duration == null)
                     ? 0
-                    : inuseAudioinfo.duration.inSeconds))
+                    : inuseAudioinfo!.duration!.inSeconds))
             .toDouble(),
-        divisions: 9,
+        // divisions: 5,
         onChangeStart: (double value) {
           print('Start value is ' + value.toString());
         },
@@ -811,7 +1090,7 @@ class _ListPageState extends State<ListPage>
         },
         onChanged: (double value) {
           setState(() {
-            if (value == inuseAudioinfo.position.inSeconds) {
+            if (value == inuseAudioinfo!.position!.inSeconds) {
             } else {
               seekToSecond(value.toInt());
               value = value;
@@ -834,52 +1113,83 @@ class _ListPageState extends State<ListPage>
   }
 
   Future<List<MusicData>> downloadSongList(String appname) async {
-    String url =
-        "https://parshtech-songs-jainmusic.s3.us-east-2.amazonaws.com/input.json";
+    // String url = "https://parshtech-songs-jainmusic.s3.us-east-2.amazonaws.com/input.json";
+    bool donwloadstatus = false;
     String arrayObjsText = "";
+    eos.Response response;
     // '{ "version":1, "tags": [ { "id": 1, "title": "Namp 1", "album": "Flume", "songURL": "https://parshtech-songs-jainmusic.s3.us-east-2.amazonaws.com/Namokar/Namokaar+Mantra+by+Lata+Mangeshkar.mp3", "hindiName": "Testing 1", "favorite": false }, { "id": 2, "title": "Namp 2", "album": "Flume", "songURL": "https://parshtech-songs-jainmusic.s3.us-east-2.amazonaws.com/Namokar/Namokar+Mantra+by+Anurasdha+Paudwal.mp3", "hindiName": "Testing 1", "favorite": false }, { "id": 3, "title": "Namp 3", "album": "Flume", "songURL": "https://parshtech-songs-jainmusic.s3.us-east-2.amazonaws.com/Namokar/Namokaar+Mantra+by+Lata+Mangeshkar.mp3", "hindiName": "Testing 1", "favorite": false } ] }';
     // '{"tags": [{"name": "dart", "quantity": 12}, {"name": "flutter", "quantity": 25}, {"name": "json", "quantity": 8}]}';
+
     try {
-      eos.Response response;
       Dio dio = new Dio();
+      (dio.httpClientAdapter as DefaultHttpClientAdapter).onHttpClientCreate =
+          (HttpClient dioClient) {
+        dioClient.badCertificateCallback =
+            ((X509Certificate cert, String host, int port) => true);
+        return dioClient;
+      };
       response = await dio.get(
-        url,
+        INPUT_FILE,
         options: Options(
           responseType: ResponseType.plain,
         ),
       );
       // _list = response.data;
+      // print(response.data);
       arrayObjsText = response.data;
+      // donwloadstatus = true;
+      // print(arrayObjsText);
       // arrayObjsText = response.data.toString();
       // print(response.data.toString());
     } catch (e) {
       print(e);
+      // print(response);
+
     }
+    // if (donwloadstatus == true) {
     var tagObjsJson = convert.jsonDecode(arrayObjsText)['tags'] as List;
     this.setState(() {
       _list =
           tagObjsJson.map((tagJson) => MusicData.fromJson(tagJson)).toList();
-      if (_list.length > 0) {
-        print(_list.length);
-        _list = filterlist(_list, appname);
+      if (_list!.length > 0) {
+        print(_list!.length);
+        _list = filterlist(_list!, appname);
       } else {
-        commonmethod.displayDialog(
-          context,
-          "",
-          "Check internet connection",
-          Icon(
-            Icons.signal_wifi_off,
-            size: 100,
-            color: AppColors.red200,
-          ),
-        );
+        Toast.show(
+            selectlang.getAlert("Check internet connection", lang_selection!),
+            duration: 1,
+            gravity: 0);
+        // commonmethod.displayDialog(
+        //   context,
+        //   "",
+        //   selectlang.getAlert("Check internet connection", lang_selection),
+        //   Icon(
+        //     Icons.signal_wifi_off,
+        //     size: 100,
+        //     color: AppColors.red200,
+        //   ),
+        // );
       }
+      setState(() {
+        listbuilder = false;
+        _mainlist = _list;
+        // uiloading();
+      });
     });
+    // } else {
+    //   print("Failed to parse JSON");
+    //   var tagObjsJson = convert.jsonDecode(arrayObjsText)['tags'] as List;
+    // }
+    throw "Song download failed";
   }
 
   List<MusicData> filterlist(List<MusicData> list, String appname) {
-    List<MusicData> newlist = new List<MusicData>();
+    List<MusicData> newlist = <MusicData>[];
     MusicData listobject;
+    print("Filter List for " + appname);
+    if (appname.toUpperCase() == "FAVORITE") {
+      appname = "DAILY";
+    }
     for (int i = 0; i < list.length; i++) {
       if (list[i].album == appname) {
         listobject = list[i];
@@ -887,6 +1197,7 @@ class _ListPageState extends State<ListPage>
         // print(list[i]);
       }
     }
+    print("Filter List finished for " + appname);
     return newlist;
   }
 
@@ -894,8 +1205,11 @@ class _ListPageState extends State<ListPage>
     String sql = "";
     try {
       switch (appname.toUpperCase()) {
+        // case "FAVORITE":
+        //   sql = "select * from songs where isfave=1";
+        //   break;
         case "FAVORITE":
-          sql = "select * from songs where isfave=1";
+          sql = "select * from songs where isfave=1 or album='DAILY'";
           break;
         case "KIDS":
         case "STORY":
@@ -909,225 +1223,73 @@ class _ListPageState extends State<ListPage>
       List<MusicData> list1 = await dbHelper.getSongList(sql);
 
       // Future<List<MusicData>> list = await list1;
+      if (list1 == null || list1.length == 0) {}
       _list = list1;
       setState(() {
         buildListView();
+        _mainlist = _list;
+        listbuilder = false;
       });
     } catch (e) {
       print(e);
     }
+    throw "Failed to load DB Song list";
+  }
+
+  int indexfinder(index) {
+    for (int i = 0; i < _mainlist!.length; i++) {
+      if (_list!.asMap().containsKey(index)) {
+        return index;
+      } else if (_mainlist![i].id == _list![index].id) {
+        return i;
+      }
+    }
+    throw "Failed to find Indexof song";
   }
 
   Future<void> _player(int index) async {
-    commonmethod.isInternet(context);
-    if (inuseAudioinfo.list == null) {
-      inuseAudioinfo.list = _list;
+    FocusScope.of(context).unfocus();
+
+    if (_list!.length != _mainlist!.length) {
+      index = indexfinder(index);
+      fabsearch = false;
+      _list = _mainlist;
     }
-    if (inuseAudioinfo.isPlaying && index != null) {
-      if (inuseAudioinfo.playId == inuseAudioinfo.list[index].id) {
-        _songId = index;
-        inuseAudioinfo.title = inuseAudioinfo.list[index].title;
-        inuseAudioinfo.songId = index;
-        inuseAudioinfo.title = inuseAudioinfo.list[index].title;
-
-        // int status = await _inuseAudioinfo.audioPlayer.pause();
-        try {
-          inuseAudioinfo.audioPlayer.pause();
-          // print(inuseAudioinfo.title);
-          setState(() {
-            // isPlaying = true;
-            inuseAudioinfo.isPause = true;
-            inuseAudioinfo.isPlaying = false;
-            inuseAudioinfo = buildData();
-          });
-        } catch (t) {
-          //mp3 unreachable
-        }
-
-        // int status = await inuseAudioinfo.audioPlayer.pause();
-
-        // if (status == 1) {
-        //   setState(() {
-        //     // isPause = true;
-        //     // isPlaying = false;
-        //     inuseAudioinfo.isPause = true;
-        //     inuseAudioinfo.isPlaying = false;
-        //     inuseAudioinfo = buildData();
-        //   });
-        // }
+    commonmethod.isInternet(context);
+    if (inuseAudioinfo!.list == null) {
+      inuseAudioinfo!.list = _list;
+    }
+    if (inuseAudioinfo!.isPlaying! && index != null) {
+      if (inuseAudioinfo!.playId == inuseAudioinfo!.list![index].id) {
+        // _songId = index;
+        pause();
       } else {
-        inuseAudioinfo.playId = inuseAudioinfo.list[index].id;
-        _songId = index;
-        inuseAudioinfo.playURL = inuseAudioinfo.list[index].songURL;
-        inuseAudioinfo.title = inuseAudioinfo.list[index].title;
-        // _inuseAudioinfo.audioPlayer.stop();
-        // inuseAudioinfo.audioPlayer.stop();
-        // inuseAudioinfo.playId = inuseAudioinfo.list[index].id;
-        inuseAudioinfo.songId = index;
-        inuseAudioinfo.playURL = inuseAudioinfo.list[index].songURL;
-        inuseAudioinfo.title = inuseAudioinfo.list[index].title;
-
-        // int status = await inuseAudioinfo.audioPlayer
-        //     .play(inuseAudioinfo.playURL)
-        //     .then((value) {
-        //   return value;
-        // });
-
-        try {
-          await inuseAudioinfo.audioPlayer.open(
-            Audio.network(inuseAudioinfo.playURL),
-          );
-          print(inuseAudioinfo.title);
-          setState(() {
-            // isPlaying = true;
-            inuseAudioinfo.isPause = false;
-            inuseAudioinfo.isPlaying = true;
-            inuseAudioinfo = buildData();
-          });
-        } catch (t) {
-          //mp3 unreachable
-        }
-
-        // print(inuseAudioinfo.title);
-        // if (status == 1) {
-        //   setState(() {
-        //     // isPlaying = true;
-        //     inuseAudioinfo.isPlaying = true;
-        //     inuseAudioinfo = buildData();
-        //   });
-        // }
+        startMusic(index);
       }
     } else {
       if (index == null) {
-        if (inuseAudioinfo.isPlaying) {
-          try {
-            inuseAudioinfo.audioPlayer.pause();
-            // print(inuseAudioinfo.title);
-            setState(() {
-              // isPlaying = true;
-              inuseAudioinfo.isPause = true;
-              inuseAudioinfo.isPlaying = false;
-              inuseAudioinfo = buildData();
-            });
-          } catch (t) {
-            //mp3 unreachable
-          }
-          // _inuseAudioinfo.audioPlayer.pause();
-          // inuseAudioinfo.audioPlayer.pause();
-          // setState(() {
-          //   // isPause = true;
-          //   // isPlaying = false;
-          //   inuseAudioinfo.isPause = true;
-          //   inuseAudioinfo.isPlaying = false;
-
-          //   // inuseAudioinfo = buildData();
-          // });
+        if (inuseAudioinfo!.isPlaying!) {
+          pause();
         } else {
-          if (!inuseAudioinfo.isPlaying) {
-            if (inuseAudioinfo.isPause) {
-              try {
-                inuseAudioinfo.audioPlayer.playOrPause();
-                // print(inuseAudioinfo.title);
-                setState(() {
-                  // isPlaying = true;
-                  inuseAudioinfo.isPause = false;
-                  inuseAudioinfo.isPlaying = true;
-                  inuseAudioinfo = buildData();
-                });
-              } catch (t) {
-                //mp3 unreachable
-              }
-              // _inuseAudioinfo.audioPlayer.resume();
-              // inuseAudioinfo.audioPlayer.resume();
-              // // isPlaying = true;
-              // setState(() {
-              //   // isPause = false;
-              //   // isPlaying = true;
-              //   inuseAudioinfo.isPause = false;
-              //   inuseAudioinfo.isPlaying = true;
-              //   inuseAudioinfo = buildData();
-              // });
+          if (!inuseAudioinfo!.isPlaying!) {
+            if (inuseAudioinfo!.isPause!) {
+              pauseplay();
             } else {
-              commonmethod.displayDialog(
-                context,
-                "",
-                "Please select song to play.",
-                Icon(
-                  Icons.library_music,
-                  size: 100,
-                  color: AppColors.red200,
-                ),
-              );
+              selectMusicNotification();
             }
           }
         }
-      } else if (index != null && inuseAudioinfo.isPause == true) {
-        try {
-          inuseAudioinfo.audioPlayer.playOrPause();
-          // print(inuseAudioinfo.title);
-          setState(() {
-            // isPlaying = true;
-            inuseAudioinfo.isPause = false;
-            inuseAudioinfo.isPlaying = true;
-            inuseAudioinfo = buildData();
-          });
-        } catch (t) {
-          //mp3 unreachable
-        }
-        // _inuseAudioinfo.audioPlayer.resume();
-        // inuseAudioinfo.audioPlayer.resume();
-        // // isPlaying = true;
-        // setState(() {
-        //   // isPause = false;
-        //   // isPlaying = true;
-        //   inuseAudioinfo.isPause = false;
-        //   inuseAudioinfo.isPlaying = true;
-        //   inuseAudioinfo = buildData();
-        // });
+      } else if (index != null && inuseAudioinfo!.isPause == true) {
+        pauseplay();
       } else {
-        if (index > inuseAudioinfo.list.length - 1) {
+        if (index > inuseAudioinfo!.list!.length - 1) {
           index = 0;
         }
-        inuseAudioinfo.playURL = inuseAudioinfo.list[index].songURL;
-        _playId = inuseAudioinfo.list[index].id;
-        _songId = index;
-        inuseAudioinfo.playURL = inuseAudioinfo.list[index].songURL;
-        inuseAudioinfo.title = inuseAudioinfo.list[index].title;
-        inuseAudioinfo.playId = inuseAudioinfo.list[index].id;
-        inuseAudioinfo.songId = index;
-        try {
-          await inuseAudioinfo.audioPlayer.open(
-            Audio.network(inuseAudioinfo.playURL),
-          );
-          print(inuseAudioinfo.title);
-          setState(() {
-            // isPlaying = true;
-            inuseAudioinfo.isPause = false;
-            inuseAudioinfo.isPlaying = true;
-            inuseAudioinfo = buildData();
-          });
-        } catch (t) {
-          //mp3 unreachable
-        }
-
-        // int status = await inuseAudioinfo.audioPlayer
-        //     .play(inuseAudioinfo.playURL)
-        //     .then((value) {
-        //   return value;
-        // });
-
-        // print(inuseAudioinfo.title);
-        // if (status == 1) {
-        //   setState(() {
-        //     // _completeSongSubscription.resume();
-        //     // isPlaying = true;
-        //     inuseAudioinfo.isPause = false;
-        //     inuseAudioinfo.isPlaying = true;
-        //     inuseAudioinfo = buildData();
-        //   });
-        // }
+        startMusic(index);
       }
     }
+    // fabsearch = false;
+    // _list = _mainlist;
   }
 
   String _printDuration(Duration duration) {
@@ -1136,15 +1298,221 @@ class _ListPageState extends State<ListPage>
       return "0$n";
     }
 
-    String twoDigitMinutes = twoDigits(duration.inMinutes.remainder(60));
-    String twoDigitSeconds = twoDigits(duration.inSeconds.remainder(60));
-    return "${twoDigits(duration.inHours)}:$twoDigitMinutes:$twoDigitSeconds";
+    if (duration != null) {
+      String twoDigitMinutes = twoDigits(duration.inMinutes.remainder(60));
+      String twoDigitSeconds = twoDigits(duration.inSeconds.remainder(60));
+      return "$twoDigitMinutes:$twoDigitSeconds";
+    } else {
+      return "0.00";
+    }
   }
 
   void seekToSecond(int second) {
     Duration newDuration = Duration(seconds: second);
     // _inuseAudioinfo.audioPlayer.seek(newDuration);
-    inuseAudioinfo.audioPlayer.seek(newDuration);
+    inuseAudioinfo!.audioPlayer!.seek(newDuration);
+  }
+
+  void pause() {
+    try {
+      inuseAudioinfo!.audioPlayer!.pause();
+      // print(inuseAudioinfo.title);
+      setState(() {
+        // isPlaying = true;
+        inuseAudioinfo!.isPause = true;
+        inuseAudioinfo!.isPlaying = false;
+        inuseAudioinfo = buildData();
+      });
+    } catch (t) {
+      //mp3 unreachable
+    }
+  }
+
+  void selectMusicNotification() {
+    Toast.show(
+        selectlang.getAlert("Please select song to play.", lang_selection!),
+        duration: 1,
+        gravity: 0);
+    // commonmethod.displayDialog(
+    //   context,
+    //   "",
+    //   selectlang.getAlert("Please select song to play.", lang_selection),
+    //   Icon(
+    //     Icons.library_music,
+    //     size: 100,
+    //     color: AppColors.red200,
+    //   ),
+    // );
+  }
+
+  void pauseplay() {
+    try {
+      inuseAudioinfo!.audioPlayer!.play();
+      // print(inuseAudioinfo.title);
+      setState(() {
+        // isPlaying = true;
+        inuseAudioinfo!.isPause = false;
+        inuseAudioinfo!.isPlaying = true;
+        inuseAudioinfo = buildData();
+      });
+    } catch (t) {
+      //mp3 unreachable
+    }
+  }
+
+  void stop() {
+    inuseAudioinfo!.audioPlayer!.stop();
+    setState(() {
+      inuseAudioinfo!.isPlaying = false;
+      // inuseAudioinfo.duration = new Duration(seconds: 0);
+    });
+  }
+
+  Future<void> startMusic(int index) async {
+    inuseAudioinfo!.playId = inuseAudioinfo!.list![index].id;
+    _songId = index;
+    inuseAudioinfo!.playURL = inuseAudioinfo!.list![index].songURL;
+    inuseAudioinfo!.title = getSongName(inuseAudioinfo!.list![index]);
+    inuseAudioinfo!.songId = index;
+    // inuseAudioinfo.playURL =
+    //     "https://www.parshtech.com/DATA/AARTI/Vasupujya Bhagwan Ki aarti.mp3";
+    try {
+      await inuseAudioinfo!.audioPlayer!.open(
+          Audio.network(
+            inuseAudioinfo!.playURL!,
+            metas: Metas(
+              title: inuseAudioinfo!.title,
+              album: inuseAudioinfo!.appname,
+              image: MetasImage.asset(commonmethod.moduleImage(appname)),
+            ),
+          ),
+          showNotification: true,
+          notificationSettings: NotificationSettings(
+            prevEnabled: false, //disable the previous button
+            customNextAction: (player) {
+              playnextSong();
+              print("Next Song");
+            },
+            customPlayPauseAction: (player) {
+              print("Pause Song");
+              if (inuseAudioinfo!.isPlaying!) {
+                pause();
+              } else {
+                pauseplay();
+              }
+            },
+            customPrevAction: (player) {
+              print("Previous Song");
+            },
+            customStopAction: (player) {
+              stop();
+              print("STOP");
+            },
+          ));
+      print(inuseAudioinfo!.title);
+      setState(() {
+        // isPlaying = true;
+        inuseAudioinfo!.isPause = false;
+        inuseAudioinfo!.isPlaying = true;
+        inuseAudioinfo = buildData();
+      });
+    } catch (t) {
+      print("Failed to get MP3 data");
+      //mp3 unreachable
+    }
+  }
+
+  String getSongName(MusicData list) {
+    if (lang_selection == 1) {
+      return list.hindiName;
+    } else {
+      return list.title;
+    }
+  }
+
+  getFormatedTime() {
+    return (inuseAudioinfo!.duration!.inMinutes
+        .remainder(60)
+        .toString()
+        .padLeft(2, '0.0'));
+  }
+
+  Padding buildMusicFAB() {
+    return Padding(
+      padding: const EdgeInsets.only(top: 35.0),
+      child: FloatingActionButton(
+        backgroundColor: Colors.orange,
+        splashColor: Colors.amberAccent,
+        child: Icon(Icons.search),
+        onPressed: () {
+          setState(() {
+            if (fabsearch!) {
+              fabsearch = false;
+              setState(() {
+                _list = _mainlist;
+              });
+            } else {
+              fabsearch = true;
+            }
+          });
+        },
+      ),
+    );
+  }
+
+  Color getSelectionColor(int index) {
+    if (fabsearch == false) {
+      if (inuseAudioinfo != null) {
+        if (_list![index].id == inuseAudioinfo!.playId &&
+            inuseAudioinfo!.appname == appname) {
+          return AppColors.activeColor;
+        } else {
+          return AppColors.mainColor;
+        }
+      } else {
+        return AppColors.mainColor;
+      }
+    }
+    throw "Unable to set selected song color";
+  }
+
+  Future<void> downloadSongs(context, String appname) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    isLoading = true;
+    bool firstinstall = false;
+    dbversion = prefs.getInt('dbversion');
+    eos.Response response;
+    String arrayObjsText = "";
+    try {
+      Dio dio = new Dio();
+      (dio.httpClientAdapter as DefaultHttpClientAdapter).onHttpClientCreate =
+          (HttpClient dioClient) {
+        dioClient.badCertificateCallback =
+            ((X509Certificate cert, String host, int port) => true);
+        return dioClient;
+      };
+      response = await dio.get(
+        INPUT_FILE,
+        options: Options(
+          responseType: ResponseType.plain,
+        ),
+      );
+      arrayObjsText = response.data;
+      // print(response.data.toString());
+      if (response != null) {
+        final body = json.decode(response.data);
+        var tagObjsJson = jsonDecode(arrayObjsText)['tags'] as List;
+
+        songlist =
+            tagObjsJson.map((tagJson) => MusicData.fromJson(tagJson)).toList();
+        dbHelper.buildDB1(songlist!, body['version']);
+      }
+    } catch (e) {
+      Toast.show(
+          selectlang.getAlert("Check internet connection", lang_selection!),
+          duration: 1,
+          gravity: 0);
+    }
   }
 
   // @override

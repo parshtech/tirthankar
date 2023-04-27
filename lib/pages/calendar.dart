@@ -4,31 +4,34 @@ import 'dart:async';
 
 import 'package:Tirthankar/core/const.dart';
 import 'package:Tirthankar/core/dbmanager.dart';
+import 'package:Tirthankar/core/keys.dart';
+import 'package:Tirthankar/core/language.dart';
 import 'package:Tirthankar/widgets/common_methods.dart';
+import 'package:Tirthankar/widgets/custom_buildDrawer.dart';
 // import 'package:audioplayer/audioplayer.dart';
 import 'package:flutter/material.dart';
-import 'package:Tirthankar/pages/home.dart';
 import 'package:Tirthankar/pages/rashifal.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
-
-import 'package:intl/intl.dart';
+// import 'package:gradient_app_bar/gradient_app_bar.dart';
 
 class CalendarPage extends StatefulWidget {
-  String appname;
+  String? appname;
+  int? month;
 
-  CalendarPage({this.appname});
+  CalendarPage({this.appname, this.month});
   @override
-  _CalendarPageState createState() => _CalendarPageState(appname);
+  _CalendarPageState createState() => _CalendarPageState(appname!, month!);
 }
 
 class _CalendarPageState extends State<CalendarPage>
     with SingleTickerProviderStateMixin {
   String appname;
+  int month;
   int _index = 0;
-  int cur_month;
-  String currentmonth;
-  String prevmonth;
-  String nextmonth;
+  int? cur_month;
+  String? currentmonth;
+  String? prevmonth;
+  String? nextmonth;
   bool rashifal = false;
 
   List months = [
@@ -47,17 +50,27 @@ class _CalendarPageState extends State<CalendarPage>
   ];
   static var now = new DateTime.now();
 
-  _CalendarPageState(this.appname); // List<MusicModel> _list1;
+  _CalendarPageState(this.appname, this.month); // List<MusicModel> _list1;
   final sqllitedb dbHelper = new sqllitedb();
+  final languageSelector selectlang = new languageSelector();
+
   final common_methods commonmethod = new common_methods();
-  PageController pageController = PageController(initialPage: now.month - 1);
+  PageController? pageController = PageController(initialPage: now.month - 1);
   @override
   void initState() {
-    cur_month = now.month;
-    currentmonth = months[cur_month - 1];
-    prevmonth = months[cur_month - 2];
-    nextmonth = months[cur_month];
-    print(months[cur_month - 1]);
+    currentappname = "HOME";
+    if (month == 0) {
+      cur_month = now.month;
+    } else {
+      cur_month = month;
+    }
+    curmonth = cur_month;
+    currentmonth = months[cur_month! - 1];
+    if (currentmonth != "jan") {
+      prevmonth = months[cur_month! - 2];
+    }
+    nextmonth = months[cur_month!];
+    print(months[cur_month! - 1]);
     // var date = DateTime.now();
     // var prevMonth = new DateTime(date.month - 1);
     super.initState();
@@ -66,28 +79,19 @@ class _CalendarPageState extends State<CalendarPage>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        elevation: 0,
-        backgroundColor: AppColors.styleColor,
-        centerTitle: true,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back),
-          onPressed: () {
-            Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (_) => HomePage(
-                  appname: appname,
-                  // data: ndata,
-                ),
-              ),
-            );
-          },
-        ),
-        title: Text(
-          appname,
-          style: TextStyle(color: AppColors.white),
-        ),
-      ),
+      appBar: commonmethod.buildAppBar(context, appname),
+      // GradientAppBar(
+      //   elevation: 0,
+      //   // backgroundColor: AppColors.styleColor,
+      //   centerTitle: true,
+      //   backgroundColorStart: Colors.red,
+      //   backgroundColorEnd: Colors.purple,
+      //   title: Text(
+      //     selectlang.getAlbum("Tirthankar", lang_selection),
+      //     style: TextStyle(color: AppColors.white),
+      //   ),
+      // ),
+      drawer: new Drawer(child: CustomeBuildDrawer()),
       floatingActionButton: Padding(
         padding: const EdgeInsets.only(bottom: 50.0),
         child: FloatingActionButton(
@@ -96,7 +100,8 @@ class _CalendarPageState extends State<CalendarPage>
             Navigator.of(context).push(
               MaterialPageRoute(
                 builder: (_) => RashiView(
-                    imagepath: "assets/" + currentmonth + "_rashi.png"),
+                    imagepath:
+                        "assets/calendar/" + currentmonth! + "_rashi.png"),
               ),
             );
           },
@@ -108,7 +113,7 @@ class _CalendarPageState extends State<CalendarPage>
       //         Navigator.of(context).push(
       //           MaterialPageRoute(
       //             builder: (_) => RashiView(
-      //                 imagepath: "assets/" + currentmonth + "_rashi.png"),
+      //                 imagepath: "assets/calendar/" + currentmonth + "_rashi.png"),
       //           ),
       //         );
       //       }),
@@ -118,8 +123,9 @@ class _CalendarPageState extends State<CalendarPage>
           controller: pageController,
           onPageChanged: (index) {
             _index = index;
+            curmonth = index;
             currentmonth = months[index];
-            print("This is current month:" + currentmonth);
+            print("This is current month:" + currentmonth!);
           },
           children: <Widget>[
 //            Center()
@@ -145,65 +151,66 @@ class _CalendarPageState extends State<CalendarPage>
         // addRunner ?
 
         Container(
-          height: MediaQuery.of(context).size.width * (kIsWeb ? 0.1 : 0.3),
-          width: MediaQuery.of(context).size.width * (kIsWeb ? 0.5 : 1.0),
+          height: MediaQuery.of(context).size.height * (kIsWeb ? 0.2 : 0.18),
+          width: MediaQuery.of(context).size.width * (kIsWeb ? 0.6 : 1.0),
           decoration: BoxDecoration(
             image: DecorationImage(
-              image: AssetImage("assets/" + currentmonth + "_header.png"),
+              image:
+                  AssetImage("assets/calendar/" + currentmonth + "_header.png"),
               fit: BoxFit.fill,
             ),
             shape: BoxShape.rectangle,
           ),
         ),
         buildCalRow(
-            'assets/sunday.png',
-            "assets/" + currentmonth + "_row_1_col_1.png",
-            "assets/" + currentmonth + "_row_1_col_2.png",
-            "assets/" + currentmonth + "_row_1_col_3.png",
-            "assets/" + currentmonth + "_row_1_col_4.png",
-            "assets/" + currentmonth + "_row_1_col_5.png"),
+            'assets/calendar/sunday.png',
+            "assets/calendar/" + currentmonth + "_row_1_col_1.png",
+            "assets/calendar/" + currentmonth + "_row_1_col_2.png",
+            "assets/calendar/" + currentmonth + "_row_1_col_3.png",
+            "assets/calendar/" + currentmonth + "_row_1_col_4.png",
+            "assets/calendar/" + currentmonth + "_row_1_col_5.png"),
         buildCalRow(
-            'assets/monday.png',
-            "assets/" + currentmonth + "_row_2_col_1.png",
-            "assets/" + currentmonth + "_row_2_col_2.png",
-            "assets/" + currentmonth + "_row_2_col_3.png",
-            "assets/" + currentmonth + "_row_2_col_4.png",
-            "assets/" + currentmonth + "_row_2_col_5.png"),
+            'assets/calendar/monday.png',
+            "assets/calendar/" + currentmonth + "_row_2_col_1.png",
+            "assets/calendar/" + currentmonth + "_row_2_col_2.png",
+            "assets/calendar/" + currentmonth + "_row_2_col_3.png",
+            "assets/calendar/" + currentmonth + "_row_2_col_4.png",
+            "assets/calendar/" + currentmonth + "_row_2_col_5.png"),
         buildCalRow(
-            'assets/tuesday.png',
-            "assets/" + currentmonth + "_row_3_col_1.png",
-            "assets/" + currentmonth + "_row_3_col_2.png",
-            "assets/" + currentmonth + "_row_3_col_3.png",
-            "assets/" + currentmonth + "_row_3_col_4.png",
-            "assets/" + currentmonth + "_row_3_col_5.png"),
+            'assets/calendar/tuesday.png',
+            "assets/calendar/" + currentmonth + "_row_3_col_1.png",
+            "assets/calendar/" + currentmonth + "_row_3_col_2.png",
+            "assets/calendar/" + currentmonth + "_row_3_col_3.png",
+            "assets/calendar/" + currentmonth + "_row_3_col_4.png",
+            "assets/calendar/" + currentmonth + "_row_3_col_5.png"),
         buildCalRow(
-            'assets/wednesday.png',
-            "assets/" + currentmonth + "_row_4_col_1.png",
-            "assets/" + currentmonth + "_row_4_col_2.png",
-            "assets/" + currentmonth + "_row_4_col_3.png",
-            "assets/" + currentmonth + "_row_4_col_4.png",
-            "assets/" + currentmonth + "_row_4_col_5.png"),
+            'assets/calendar/wednesday.png',
+            "assets/calendar/" + currentmonth + "_row_4_col_1.png",
+            "assets/calendar/" + currentmonth + "_row_4_col_2.png",
+            "assets/calendar/" + currentmonth + "_row_4_col_3.png",
+            "assets/calendar/" + currentmonth + "_row_4_col_4.png",
+            "assets/calendar/" + currentmonth + "_row_4_col_5.png"),
         buildCalRow(
-            'assets/thursday.png',
-            "assets/" + currentmonth + "_row_5_col_1.png",
-            "assets/" + currentmonth + "_row_5_col_2.png",
-            "assets/" + currentmonth + "_row_5_col_3.png",
-            "assets/" + currentmonth + "_row_5_col_4.png",
-            "assets/" + currentmonth + "_row_5_col_5.png"),
+            'assets/calendar/thursday.png',
+            "assets/calendar/" + currentmonth + "_row_5_col_1.png",
+            "assets/calendar/" + currentmonth + "_row_5_col_2.png",
+            "assets/calendar/" + currentmonth + "_row_5_col_3.png",
+            "assets/calendar/" + currentmonth + "_row_5_col_4.png",
+            "assets/calendar/" + currentmonth + "_row_5_col_5.png"),
         buildCalRow(
-            'assets/friday.png',
-            "assets/" + currentmonth + "_row_6_col_1.png",
-            "assets/" + currentmonth + "_row_6_col_2.png",
-            "assets/" + currentmonth + "_row_6_col_3.png",
-            "assets/" + currentmonth + "_row_6_col_4.png",
-            "assets/" + currentmonth + "_row_6_col_5.png"),
+            'assets/calendar/friday.png',
+            "assets/calendar/" + currentmonth + "_row_6_col_1.png",
+            "assets/calendar/" + currentmonth + "_row_6_col_2.png",
+            "assets/calendar/" + currentmonth + "_row_6_col_3.png",
+            "assets/calendar/" + currentmonth + "_row_6_col_4.png",
+            "assets/calendar/" + currentmonth + "_row_6_col_5.png"),
         buildCalRow(
-            'assets/saturday.png',
-            "assets/" + currentmonth + "_row_7_col_1.png",
-            "assets/" + currentmonth + "_row_7_col_2.png",
-            "assets/" + currentmonth + "_row_7_col_3.png",
-            "assets/" + currentmonth + "_row_7_col_4.png",
-            "assets/" + currentmonth + "_row_7_col_5.png"),
+            'assets/calendar/saturday.png',
+            "assets/calendar/" + currentmonth + "_row_7_col_1.png",
+            "assets/calendar/" + currentmonth + "_row_7_col_2.png",
+            "assets/calendar/" + currentmonth + "_row_7_col_3.png",
+            "assets/calendar/" + currentmonth + "_row_7_col_4.png",
+            "assets/calendar/" + currentmonth + "_row_7_col_5.png"),
 
         // GestureDetector(
         //     onTap: () {
@@ -212,7 +219,7 @@ class _CalendarPageState extends State<CalendarPage>
         //         rashifal = true;
         //       });
         //       displayDate(
-        //           context, "assets/" + currentmonth + "_rashi.png", 0.9);
+        //           context, "assets/calendar/" + currentmonth + "_rashi.png", 0.9);
         //       // displayDate(context, impagePath);
         //       print("Display Rashifal");
         //     },
@@ -237,24 +244,26 @@ class _CalendarPageState extends State<CalendarPage>
   Container buildCalRow(String day, String col1, String col2, String col3,
       String col4, String col5) {
     return Container(
-      height: MediaQuery.of(context).size.width * (kIsWeb ? 0.05 : 0.20),
-      width: MediaQuery.of(context).size.width * (kIsWeb ? 0.5 : 1.0),
-      child: Row(mainAxisAlignment: MainAxisAlignment.start, children: <Widget>[
-        buildRowDay(day),
-        buildColumnDate(col1),
-        buildColumnDate(col2),
-        buildColumnDate(col3),
-        buildColumnDate(col4),
-        buildColumnDate(col5),
-      ]),
+      height: MediaQuery.of(context).size.height * (kIsWeb ? 0.1 : 0.09),
+      width: MediaQuery.of(context).size.width * (kIsWeb ? 0.6 : 1.0),
+      child: Row(mainAxisAlignment: MainAxisAlignment.end,
+          // crossAxisAlignment: CrossAxisAlignment.center,
+          children: <Widget>[
+            buildRowDay(day),
+            buildColumnDate(col1),
+            buildColumnDate(col2),
+            buildColumnDate(col3),
+            buildColumnDate(col4),
+            buildColumnDate(col5),
+          ]),
     );
   }
 
   Column buildRowDay(String imagePath) {
     return Column(children: <Widget>[
       Container(
-        height: MediaQuery.of(context).size.width * (kIsWeb ? 0.05 : 0.2),
-        width: MediaQuery.of(context).size.width * (kIsWeb ? 0.05 : 0.1),
+        height: MediaQuery.of(context).size.height * (kIsWeb ? 0.1 : 0.09),
+        width: MediaQuery.of(context).size.width * (kIsWeb ? 0.1 : 0.1),
 //        height: MediaQuery.of(context).size.height * 0.1,
 //        width: MediaQuery.of(context).size.width * 0.1,
         decoration: BoxDecoration(
@@ -281,8 +290,8 @@ class _CalendarPageState extends State<CalendarPage>
         child: Container(
 //          height: MediaQuery.of(context).size.height * 0.1,
 //          width: MediaQuery.of(context).size.width * 0.18,
-          height: MediaQuery.of(context).size.width * (kIsWeb ? 0.05 : 0.2),
-          width: MediaQuery.of(context).size.width * (kIsWeb ? 0.09 : 0.18),
+          height: MediaQuery.of(context).size.height * (kIsWeb ? 0.1 : 0.09),
+          width: MediaQuery.of(context).size.width * (kIsWeb ? 0.1 : 0.18),
           decoration: BoxDecoration(
             border: Border.all(
               color: AppColors.red200,

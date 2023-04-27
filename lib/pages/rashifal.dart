@@ -1,16 +1,19 @@
 //import 'dart:html';
 
-import 'package:flutter/cupertino.dart';
+import 'package:Tirthankar/core/keys.dart';
+import 'package:Tirthankar/core/language.dart';
+import 'package:Tirthankar/widgets/common_methods.dart';
+import 'package:Tirthankar/widgets/custom_buildDrawer.dart';
 
 import 'package:flutter/material.dart';
 // import 'package:flutter_plugin_pdf_viewer/flutter_plugin_pdf_viewer.dart';
-import 'package:Tirthankar/core/const.dart';
+
 import 'package:photo_view/photo_view.dart';
 
 class RashiView extends StatefulWidget {
   // int playingId;
 
-  String imagepath;
+  String? imagepath;
 
   // List<MusicData> list;
   RashiView({this.imagepath});
@@ -20,15 +23,17 @@ class RashiView extends StatefulWidget {
 }
 
 class _RashiViewState extends State<RashiView> {
-  String imagepath;
+  String? imagepath;
 
   // PDFDocument document;
 
   _RashiViewState(this.imagepath);
-
+  final languageSelector selectlang = new languageSelector();
+  final common_methods commonmethod = new common_methods();
   @override
   void initState() {
-    print("This is impage path:" + imagepath);
+    currentappname = "CALENDAR";
+    print("This is impage path:" + imagepath!);
     super.initState();
   }
 
@@ -41,24 +46,19 @@ class _RashiViewState extends State<RashiView> {
   Widget build(BuildContext context) => MaterialApp(
         theme: ThemeData(primaryColor: Colors.white),
         home: Scaffold(
-          appBar: AppBar(
-            elevation: 0,
-            backgroundColor: AppColors.styleColor,
-            centerTitle: true,
-            leading: IconButton(
-              icon: Icon(
-                Icons.arrow_back,
-                color: Colors.white,
-              ),
-              onPressed: () {
-                Navigator.of(context).pop(false);
-              },
-            ),
-            title: Text(
-              "Tirthankar",
-              style: TextStyle(color: Colors.white),
-            ),
-          ),
+          appBar: commonmethod.buildAppBar(context, "CALENDAR"),
+          // GradientAppBar(
+          //   elevation: 0,
+          //   // backgroundColor: AppColors.styleColor,
+          //   centerTitle: true,
+          //   backgroundColorStart: Colors.red,
+          //   backgroundColorEnd: Colors.purple,
+          //   title: Text(
+          //     selectlang.getAlbum("Tirthankar", lang_selection),
+          //     style: TextStyle(color: AppColors.white),
+          //   ),
+          // ),
+          drawer: new Drawer(child: CustomeBuildDrawer()),
           body: Container(
             // ignore: deprecated_member_use
             child: Container(
@@ -66,7 +66,7 @@ class _RashiViewState extends State<RashiView> {
                 // width: MediaQuery.of(context).size.width * 1.0,
                 // padding: EdgeInsets.all(16.0),
                 child: PhotoView(
-              imageProvider: AssetImage(imagepath),
+              imageProvider: AssetImage(imagepath!),
             )
                 // child: PinchZoomImage(
                 //   image: Image.asset(imagepath),

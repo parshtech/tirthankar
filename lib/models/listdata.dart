@@ -6,24 +6,25 @@ import 'package:assets_audio_player/assets_audio_player.dart';
 import 'music.dart';
 
 class Data {
-  String appname;
-  int playingId;
-  List<MusicData> list;
-  bool isPlaying = false;
-  int playId;
-  int songId;
-  String playURL;
-  String title;
-  bool isRepeat;
-  bool isShuffle;
-  String albumImage;
-  Duration duration = new Duration();
-  Duration position = new Duration();
+  String? appname;
+  int? playingId;
+  List<MusicData>? list;
+  bool? isPlaying = false;
+  int? playId;
+  int? songId;
+  String? playURL;
+  String? title;
+  bool? isRepeat;
+  bool? isShuffle;
+  String? albumImage;
+  String? pdffile;
+  Duration? duration = new Duration();
+  Duration? position = new Duration();
   // AudioPlayer audioPlayer = AudioPlayer();
-  AssetsAudioPlayer audioPlayer = AssetsAudioPlayer();
+  AssetsAudioPlayer? audioPlayer = AssetsAudioPlayer();
   // AudioPlayer audioPlayers = AudioPlayer();
 
-  bool isPause;
+  bool? isPause;
   Data(
       {this.appname,
       this.playingId,
@@ -38,5 +39,6 @@ class Data {
       this.songId,
       this.list,
       this.title,
+      this.pdffile,
       this.albumImage});
 }

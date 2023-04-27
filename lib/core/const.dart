@@ -1,4 +1,3 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 class AppColors {
@@ -16,12 +15,15 @@ class AppColors {
   static Color black = Color(0XFF000000);
   static Color darkmode = Color(0X73000000);
   static Color transperent = Colors.transparent;
+  static Color orangeAccent = Colors.orangeAccent;
+  static Color? darkBrown = Colors.brown[900];
 
   AppColors() {
-    String mode;
+    String? mode;
     // mode = "darkmode";
+
     switch (mode) {
-      case "darkMode":        
+      case "darkMode":
         mainColor = Color(0XFFe5eefc);
         styleColor = Color(0XFF6f7e96);
         activeColor = Color(0xff0B2512);
